@@ -1,0 +1,4 @@
+/* Tailwind directives removed — using CDN fallback for Tailwind in index.html */
+/* small legacy overrides */
+body { margin:0 }
+h1 { margin:0 0 1rem 0 }

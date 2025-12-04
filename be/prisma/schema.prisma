@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ChecklistItem {
+  id        Int      @id @default(autoincrement())
+  text      String
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Assessment {
+  id        Int      @id @default(autoincrement())
+  age       Int?
+  education String?
+  ielts     Float?
+  score     Int
+  result    String
+  createdAt DateTime @default(now())
+}
