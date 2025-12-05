@@ -32,4 +32,16 @@ const router = createRouter({
   routes
 })
 
+// Navigation guard: require login for all routes except /login
+router.beforeEach((to, from, next) => {
+  if (to.path === '/login') return next()
+  try {
+    const stored = localStorage.getItem('rtu_user')
+    if (!stored) return next({ path: '/login', query: { redirect: to.fullPath } })
+  } catch (e) {
+    return next({ path: '/login', query: { redirect: to.fullPath } })
+  }
+  return next()
+})
+
 export default router

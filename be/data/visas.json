@@ -1,0 +1,278 @@
+{
+  "results": [
+    {
+      "id": "e5ae7059-bfa8-4fa4-a5c0-c13cf3520193",
+      "title": "Commonwealth Register of Institutions and Courses for Overseas Students (CRICOS)",
+      "name": "cricos",
+      "notes": "CRICOS is the official list of all Australian education providers that offer courses to people studying in Australia on student visas and the courses offered. This export is a snapshot of the CRICOS. For the latest version, you must visit the live website: https://cricos.education.gov.au/default.aspx\r\n",
+      "url": null,
+      "resources": [
+        {
+          "name": "2025-12-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/755a35c0-36c0-4dbf-a661-9635473803d5/download/cricos-providers-courses-and-locations-as-at-2025-12-1-8-50-36.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2025-11-03 CRICOS Providers, Courses and Location",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/132919cc-acd0-4b9f-b539-afdeaf48e844/download/cricos-providers-courses-and-locations-as-at-2025-11-3-14-22-02.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2025-10-01 CRICOS Providers, Courses and Locations",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/82106477-18f0-4560-96c2-8f129d58de6f/download/2025-10-01-cricos-providers-courses-and-locations.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2025-09-01 CRICOS Providers, Courses and Locations",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/673b90a4-1138-4179-88de-4911a5e71426/download/2025-09-01-cricos-providers-courses-and-locations.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2025-08-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/c1fe8690-0346-42ff-a841-61a6beda675b/download/cricos-providers-courses-and-locations-as-at-2025-8-1-9-05-05.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2025-07-01 CRICOS Providers, Courses and Locations.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/7a337a46-de73-4c14-b1bc-8e5f89a5ff45/download/cricos-providers-courses-and-locations-as-at-2025-7-1-9-21-53.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2025-06-03 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/ee8f0b3d-5884-453d-9c14-dd1874b7ec54/download/cricos-providers-courses-and-locations-as-at-2025-6-3-8-12-19.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2025-05-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/773c798f-5d8f-4b40-8a8e-7185e208577f/download/cricos-providers-courses-and-locations-as-at-2025-5-1-9-29-08.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2025-04-01 CRICOS Providers, Courses and Locations.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/b666e726-c78d-4e89-b93e-bb89bfd6327a/download/2025-04-01-cricos-providers-courses-and-locations.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2025-03-11 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/71c33b50-7998-4348-9658-cf9e49557f2c/download/cricos-providers-courses-and-locations-as-at-2025-3-11-11-35-09.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2025-02-03 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/8efe7f59-9fbb-4319-9379-774db69c477e/download/cricos-providers-courses-and-locations-as-at-2025-2-3-9-10-50.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2025-01-02 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/acffce0b-d9ce-4ab3-8253-c1a1f05c2173/download/cricos-providers-courses-and-locations-as-at-2025-1-2-8-44-23.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2024-12-02 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/c66d8d98-00e3-4b1e-8524-fde698efad23/download/cricos-providers-courses-and-locations-as-at-2024-12-2-8-01-02.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2024-11-04 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/cb9e2fec-db8b-40f3-a1cc-ae25b708c3af/download/cricos-providers-courses-and-locations-as-at-2024-11-4-8-27-02.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2024-10-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/40e609c9-2f5b-4170-aa74-69801c8af934/download/cricos-providers-courses-and-locations-as-at-2024-10-1-9-14-12.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2024-09-02 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/5c3223b3-cdf5-468a-b684-c70eefc1f6b7/download/cricos-providers-courses-and-locations-as-at-2024-9-2-8-02-50.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2024-08-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/67e3b6ac-90de-4a14-bd03-ec021a7b0645/download/cricos-providers-courses-and-locations-as-at-2024-8-1-8-01-54.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2024-07-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/4feabf49-fa51-4697-ba36-fa228e21453e/download/cricos-providers-courses-and-locations-as-at-2024-7-1-9-09-32.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2024-06-03 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/b1a22fba-5a38-456f-83ce-0f07d1f2bb50/download/cricos-providers-courses-and-locations-as-at-2024-6-3-8-06-15.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2024-05-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/846df8dc-a1bc-4d08-83ef-61e4ea5e499c/download/cricos-providers-courses-and-locations-as-at-2024-5-1-9-16-06.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2024-04-02 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/8a6dd866-03c7-4deb-b24d-67c8457b7892/download/cricos-providers-courses-and-locations-as-at-2024-4-2-9-06-18.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2024-03-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/73919c4f-b6a8-4a47-833b-4a1369031f89/download/cricos-providers-courses-and-locations-as-at-2024-3-1-9-16-59.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2024-02-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/222ae74f-837f-40ed-81e2-6a0bae0485ba/download/cricos-providers-courses-and-locations-as-at-2024-2-1-9-55-06.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2024-01-02 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/97796115-3657-49be-acd4-8b5b2e492f71/download/cricos-providers-courses-and-locations-as-at-2024-1-2-10-07-11.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2023-12-01 CRICOS Providers, Courses and Locations.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/15b18e2a-bee6-45f4-8a29-d637b8ba65ec/download/cricos-providers-courses-and-locations-as-at-2023-12-1-8-48-34.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2023-11-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/776f995a-6588-4f02-b076-2e6f81ac5c17/download/cricos-providers-courses-and-locations-as-at-2023-11-1-9-19-02.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2023-10-05 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/04669812-a1f6-4f86-9bb6-71732e62d824/download/cricos-providers-courses-and-locations-as-at-2023-10-5-8-15-39.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2023-09-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/68b61049-0c03-43ec-a99f-9cd7b3d66321/download/cricos-providers-courses-and-locations-as-at-2023-9-1-8-14-40.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2023-08-07 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/f9b3b8dd-b26c-45f4-af06-a6c03b384885/download/cricos-providers-courses-and-locations-as-at-2023-8-7-9-50-24.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2023-07-03 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/5164a229-8f17-4b05-88d3-8e5d0eb45cab/download/cricos-providers-courses-and-locations-as-at-2023-7-3-9-21-02.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2023-06-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/a1289337-08d9-4b81-bb1b-c0366393b22f/download/cricos-providers-courses-and-locations-as-at-2023-6-1-8-47-12.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2023-05-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/c5a912df-810a-45bd-94c7-df9ecb21494c/download/cricos-providers-courses-and-locations-as-at-2023-5-1-9-29-56.xlsx",
+          "format": "XLS"
+        },
+        {
+          "name": "2023-04-12 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/d87881a9-46c1-4af1-bde4-06582f14bb26/download/cricos-providers-courses-and-locations-as-at-2023-4-12-16-47-41.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2023-03-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/0d129dfa-b5f7-437b-8244-7714d7574215/download/cricos-providers-courses-and-locations-as-at-2023-3-1-15-56-58.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2023-02-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/29d38193-d4a8-4723-bd9c-169174bd67a7/download/2023-02-01-cricos-providers-courses-and-location.xlsx.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2023-01-03 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/7b3d33a0-f9c6-4d32-8799-9cecd7fc121c/download/cricos-providers-courses-and-locations-as-at-2023-1-3-7-59-17.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2022-12-01 CRICOS Providers, Courses and Locations",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/1a86d4aa-fe5d-49db-a17c-fbddaa74b563/download/2022-12-01-cricos-providers-courses-and-locations.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2022-11-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/7336b99d-3398-400b-9bf9-4da24bb05533/download/cricos-providers-courses-and-locations-as-at-2022-11-1-9-21-21.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2022-10-04 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/9e68fd70-ba99-4948-9f64-76e699deaf83/download/cricos-providers-courses-and-locations-as-at-2022-10-4-11-02-16.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2022-09-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/501ced01-e9c8-4598-9a00-9060d6dd7a6b/download/cricos-providers-courses-and-locations-as-at-2022-9-1-9-29-50.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2022-08-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/7af8ce2b-18d3-4731-9d26-d1277ab04c10/download/cricos-providers-courses-and-locations-as-at-2022-8-1-9-40-14.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2022-07-01 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/c4eb2a2d-7065-461c-ab89-ab9016b68273/download/cricos-providers-courses-and-locations-as-at-2022-7-1-12-44-43.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2022-06-01 CRICOS Providers, Courses and Locations.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/b52be096-03cd-4693-b6f4-cecde68e9dd1/download/cricos-providers-courses-and-locations-as-at-2022-6-1-11-52-48.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2022-04-30 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/05d22a59-6556-4fbc-aeed-9ab951ad3313/download/cricos-providers-courses-and-locations-30.04.2022.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2022-03-31 CRICOS Providers, Courses and Locations.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/c83ad755-6bc2-4e86-a0d6-99537d49e11c/download/cricos-providers-courses-and-locations-as-at-2022-03-31.xlsx",
+          "format": "excel (.xlsx)"
+        },
+        {
+          "name": "2022-02-28 CRICOS Providers, Courses and Locations.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/3bbb1b47-61f2-46e0-ab54-70744fbe091d/download/cricos-providers-courses-and-locations-as-at-2022-02-28.xlsx",
+          "format": "excel (.xlsx)"
+        },
+        {
+          "name": "2022-01-31 CRICOS Providers, Courses and Locations.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/ea5a48b5-a87d-45a3-8d59-1a7fec887e3c/download/2022-01-31-cricos-providers-courses-and-locations.xlsx.xlsx",
+          "format": "excel (.xlsx)"
+        },
+        {
+          "name": "2021-12-31 CRICOS Providers, Courses and Locations.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/9fec4dea-d4d0-41d4-af19-bfaada4c1b89/download/cricos-providers-courses-and-locations-as-at-2021-12-31.xlsx",
+          "format": "excel (.xlsx)"
+        },
+        {
+          "name": "2021-11-30 CRICOS Providers, Courses and Locations.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/76b02758-d76b-4d72-a848-04a3da06c367/download/cricos-providers-courses-and-locations-as-at-2021-11-30.xlsx",
+          "format": "excel (.xlsx)"
+        },
+        {
+          "name": "2021-10-31 CRICOS Providers, Courses and Location.xlsx ",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/328e562f-017a-4a6e-93d8-aac36f9ba0bc/download/cricos-providers-courses-and-locations-as-at-2021-10-31.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2021-9-30 CRICOS Providers, Courses and Locations.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/84ed184a-b0ae-4872-95eb-838877aadcb4/download/cricos-providers-courses-and-locations-as-at-2021-9-30.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2021-8-31 CRICOS Providers, Courses and Locations.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/1c2d2fc2-fe65-4723-b9f8-17c9aabb68e6/download/cricos-providers-courses-and-locations-as-at-2021-8-31.xlsx",
+          "format": "XLSX"
+        },
+        {
+          "name": "2021-7-30 CRICOS Providers, Courses and Location.xlsx",
+          "url": "https://data.gov.au/data/dataset/e5ae7059-bfa8-4fa4-a5c0-c13cf3520193/resource/c5ce11dc-0b1a-4631-becd-bc31a42855db/download/cricos-providers-courses-and-locations-as-at-2021-7-30.xlsx",
+          "format": "XLSX"
+        }
+      ]
+    }
+  ]
+}

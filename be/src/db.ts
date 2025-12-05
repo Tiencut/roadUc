@@ -6,7 +6,7 @@ const DATA_FILE = path.join(DATA_DIR, 'db.json')
 
 function ensureData() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true })
-  if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify({ checklist: [], assessments: [], _nextId: 1 }, null, 2), 'utf-8')
+  if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify({ checklist: [], assessments: [], plannedVisas: {}, _nextId: 1 }, null, 2), 'utf-8')
 }
 
 function readDB() {
@@ -15,7 +15,7 @@ function readDB() {
     const raw = fs.readFileSync(DATA_FILE, 'utf-8')
     return JSON.parse(raw)
   } catch (e) {
-    const init = { checklist: [], assessments: [], _nextId: 1 }
+    const init = { checklist: [], assessments: [], plannedVisas: {}, _nextId: 1 }
     fs.writeFileSync(DATA_FILE, JSON.stringify(init, null, 2), 'utf-8')
     return init
   }
@@ -65,6 +65,33 @@ export function createAssessment(a: { age?: number; education?: string; ielts?: 
   db.assessments.push(row)
   writeDB(db)
   return row
+}
+
+export function getPlannedVisa(sessionId = 'global') {
+  const db = readDB()
+  // migrate older single plannedVisa shape if present
+  if ((db as any).plannedVisa && !(db.plannedVisas && Object.keys(db.plannedVisas).length)) {
+    db.plannedVisas = { global: (db as any).plannedVisa }
+    delete (db as any).plannedVisa
+    writeDB(db)
+  }
+  return (db.plannedVisas && db.plannedVisas[sessionId]) ? db.plannedVisas[sessionId] : null
+}
+
+export function setPlannedVisa(sessionId: string, v: any) {
+  const db = readDB()
+  db.plannedVisas = db.plannedVisas || {}
+  db.plannedVisas[sessionId] = { ...(v || {}), savedAt: new Date().toISOString() }
+  writeDB(db)
+  return db.plannedVisas[sessionId]
+}
+
+export function clearPlannedVisa(sessionId = 'global') {
+  const db = readDB()
+  if (!db.plannedVisas) return { ok: true }
+  delete db.plannedVisas[sessionId]
+  writeDB(db)
+  return { ok: true }
 }
 
 export default null

@@ -17,6 +17,13 @@ export function useAuth() {
   }
 
   async function login(email: string, password: string) {
+    // Temporary: accept special admin/admin credential (no email required)
+    if (email === 'admin' && password === 'admin') {
+      const u: User = { email: 'admin', name: 'admin', token: 'admin-token' }
+      save(u)
+      return u
+    }
+
     // Mock login: accept any email/password with basic validation.
     if (!email || !email.includes('@')) throw new Error('Email không hợp lệ')
     if (!password || password.length < 6) throw new Error('Password phải >= 6 ký tự')

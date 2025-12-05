@@ -1,5 +1,8 @@
 <template>
   <div>
+    <transition enter-active-class="transition transform ease-out duration-200" enter-from-class="opacity-0 translate-y-2" enter-to-class="opacity-100 translate-y-0" leave-active-class="transition transform ease-in duration-150" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 -translate-y-2">
+      <div v-if="toastVisible" class="fixed top-4 right-4 bg-black text-white px-4 py-2 rounded shadow z-50">{{ toastMessage }}</div>
+    </transition>
     <section class="mt-8 bg-white p-4 rounded-lg border">
     <h2 class="text-lg font-semibold mb-3">Bảng tóm tắt các loại visa phổ biến</h2>
 
@@ -27,7 +30,13 @@
             <td colspan="5" class="p-3 text-center text-sm text-gray-600">Không có kết quả khớp.</td>
           </tr>
           <tr v-for="(v, i) in filteredVisas" :key="i" class="border-b hover:bg-gray-50 cursor-pointer" @click="openDetails(v)" tabindex="0" @keydown.enter.prevent="openDetails(v)">
-            <td class="p-2">{{ v.type }}</td>
+            <td class="p-2">
+              <div class="flex items-center gap-2">
+                <span>{{ v.type }}</span>
+                <span v-if="plannedVisa && plannedVisa.code === v.code" class="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">Đang chọn</span>
+                <button v-if="plannedVisa && plannedVisa.code === v.code" @click.stop="clearPlannedRow(v)" class="text-xs ml-1 text-red-600 hover:underline">Bỏ chọn</button>
+              </div>
+            </td>
             <td class="p-2">{{ v.code }}</td>
             <td class="p-2">{{ v.purpose }}</td>
             <td class="p-2">{{ v.duration }}</td>
@@ -41,71 +50,54 @@
       </table>
     </div>
     </section>
-  <div v-if="selected" class="fixed inset-0 bg-black/40 flex items-center justify-center z-40">
-    <div class="bg-white max-w-2xl w-full p-4 rounded shadow">
-      <div class="flex justify-between items-start">
-        <div>
-          <h3 class="font-semibold text-lg">{{ selected.def.title }}</h3>
-          <div class="text-xs text-gray-600">{{ selected.def.desc }}</div>
-        </div>
-        <button @click="closeDetails" class="text-gray-600">Đóng</button>
-      </div>
 
-      <div class="mt-3">
-        <h4 class="font-medium">Yêu cầu chính</h4>
-        <ul class="mt-2 space-y-2 text-sm">
-          <li v-for="(r, idx) in (selected.def.requirements || [])" :key="idx" class="flex items-center justify-between">
-            <div>{{ r.label }}</div>
-            <div>
-              <span v-if="latestAssessment === null" class="text-gray-500">(Không có dữ liệu khảo sát)</span>
-              <span v-else>
-                <span v-if="evalReq(r) === true" class="text-green-600">✓ Bạn đạt</span>
-                <span v-else-if="evalReq(r) === false" class="text-red-600">✕ Chưa đạt</span>
-                <span v-else class="text-gray-500">— Không xác định</span>
-              </span>
+    <!-- Khi user chọn 1 visa: chuyển sang layout 2 cột -->
+    <div v-if="selected" class="mt-6 flex gap-4">
+      <aside class="w-72 bg-white p-4 rounded border">
+        <h3 class="font-semibold mb-2">Danh sách visa</h3>
+        <ul class="space-y-2 text-sm">
+          <li v-for="(v, idx) in visaRows" :key="idx" @click="openDetails(v)" class="p-2 rounded cursor-pointer" :class="v.code === selected.code ? 'bg-blue-50 border-l-4 border-blue-400' : 'hover:bg-gray-50'">
+            <div class="flex items-center justify-between">
+              <div class="font-medium">{{ v.type }}</div>
+              <div v-if="plannedVisa && plannedVisa.code === v.code" class="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">Đang chọn</div>
             </div>
+            <div class="text-xs text-gray-500">{{ v.code }}</div>
           </li>
         </ul>
-      </div>
+        <div class="mt-4 flex gap-2">
+          <button @click="closeDetails" class="px-3 py-1 border rounded text-sm">Đóng</button>
+          <button v-if="plannedVisa && plannedVisa.code === selected.code" @click="clearPlannedRow(selected)" class="px-3 py-1 text-sm text-red-600">Bỏ chọn</button>
+        </div>
+      </aside>
 
-      <div v-if="selected.def.guidance" class="mt-4">
-        <h4 class="font-medium">Lời khuyên & Thông tin</h4>
-        <div class="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+      <main class="flex-1 bg-white p-4 rounded border">
+        <div class="flex justify-between items-start">
           <div>
-            <div class="font-semibold">Trước khi đi</div>
-            <ul class="mt-1 list-disc list-inside text-sm text-gray-700">
-              <li v-for="(it, idx) in (selected.def.guidance.before || [])" :key="'b-'+idx">{{ it }}</li>
-            </ul>
+            <h2 class="font-semibold text-lg">{{ selected.def.title }}</h2>
+            <div class="text-xs text-gray-600">{{ selected.def.desc }}</div>
+            <div v-if="plannedVisa && plannedVisa.code === selected.code" class="text-xs text-gray-500 mt-1">Đã chọn: {{ plannedVisa.savedAt ? (new Date(plannedVisa.savedAt)).toLocaleString() : '—' }}</div>
           </div>
-          <div>
-            <div class="font-semibold">Khi đang ở Úc</div>
-            <ul class="mt-1 list-disc list-inside text-sm text-gray-700">
-              <li v-for="(it, idx) in (selected.def.guidance.during || [])" :key="'d-'+idx">{{ it }}</li>
-            </ul>
-          </div>
-          <div>
-            <div class="font-semibold">Sau khi đi / Kết thúc</div>
-            <ul class="mt-1 list-disc list-inside text-sm text-gray-700">
-              <li v-for="(it, idx) in (selected.def.guidance.after || [])" :key="'a-'+idx">{{ it }}</li>
-            </ul>
+          <div class="flex items-center gap-2">
+            <button @click="selectAsPlan" class="px-3 py-1 bg-yellow-500 text-white rounded text-sm">Chọn làm dự định</button>
+            <button @click="closeDetails" class="px-3 py-1 border rounded text-sm">Đóng</button>
           </div>
         </div>
-      </div>
 
-      <div class="mt-4 flex justify-end gap-2">
-        <router-link to="/assessment" class="px-3 py-2 border rounded text-sm">Mở Khảo sát</router-link>
-        <button @click="closeDetails" class="px-3 py-2 bg-blue-600 text-white rounded text-sm">Đóng</button>
-      </div>
-    </div>
+        <div class="mt-4">
+          <Assessment :initialVisaType="selected.def.key" />
+        </div>
+      </main>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue'
+import Assessment from '../pages/Assessment.vue'
 
 export default defineComponent({
   name: 'VisaTable',
+  components: { Assessment },
   setup() {
     // visa definitions including simple requirement checks
     const visaDefinitions: Record<string, { key: string; title: string; desc?: string; requirements?: Array<any>; guidance?: { before?: string[]; during?: string[]; after?: string[] } }> = {
@@ -168,6 +160,35 @@ export default defineComponent({
 
     const selected = ref<any | null>(null)
     const latestAssessment = ref<any | null>(null)
+    const plannedVisa = ref<any | null>(null)
+    const toastMessage = ref<string | null>(null)
+    const toastVisible = ref(false)
+    let toastTimer: number | null = null
+    const sessionId = ref<string | null>(null)
+
+    function ensureSession() {
+      try {
+        let s = localStorage.getItem('session_id')
+        if (!s) {
+          s = 's_' + Date.now().toString(36) + Math.floor(Math.random() * 10000).toString(36)
+          localStorage.setItem('session_id', s)
+        }
+        sessionId.value = s
+      } catch (e) {
+        sessionId.value = 'global'
+      }
+    }
+
+    function showToast(msg: string, ms = 4000) {
+      toastMessage.value = msg
+      toastVisible.value = true
+      if (toastTimer) { clearTimeout(toastTimer); toastTimer = null }
+      toastTimer = window.setTimeout(() => {
+        toastVisible.value = false
+        toastMessage.value = null
+        toastTimer = null
+      }, ms) as unknown as number
+    }
 
     function loadLatest() {
       try {
@@ -177,7 +198,35 @@ export default defineComponent({
       } catch (e) { latestAssessment.value = null }
     }
 
+    async function loadPlanned() {
+      // try server first (session-aware), fall back to localStorage
+      try {
+        if (!sessionId.value) ensureSession()
+        const hdrs: any = {}
+        if (sessionId.value) hdrs['x-session-id'] = sessionId.value
+        const resp = await fetch('/api/planned-visa', { headers: hdrs })
+        if (resp.ok) {
+          const j = await resp.json().catch(() => null)
+          if (j && j.ok && j.data) {
+            plannedVisa.value = j.data
+            try { localStorage.setItem('planned_visa', JSON.stringify(j.data)) } catch (e) {}
+            return
+          }
+        }
+      } catch (e) {
+        // ignore and fallback
+      }
+
+      try {
+        const raw = localStorage.getItem('planned_visa')
+        if (raw) plannedVisa.value = JSON.parse(raw)
+        else plannedVisa.value = null
+      } catch (e) { plannedVisa.value = null }
+    }
+
     loadLatest()
+    ensureSession()
+    loadPlanned()
 
     function openDetails(row: any) {
       // attach definition if available
@@ -185,6 +234,8 @@ export default defineComponent({
       selected.value = { ...row, def }
       // ensure latest is fresh
       loadLatest()
+      // load planned selection
+      loadPlanned()
     }
 
     function closeDetails() { selected.value = null }
@@ -205,6 +256,70 @@ export default defineComponent({
         case 'education': return eduRankLocal(a.education) >= req.value
         case 'age_le': return (a.age ?? 999) <= req.value
         default: return null
+      }
+    }
+    
+    async function selectAsPlan() {
+      if (!selected.value) return
+      const code = selected.value.code
+      // toggle: if already planned, clear
+      if (plannedVisa.value && plannedVisa.value.code === code) {
+        try {
+          localStorage.removeItem('planned_visa')
+          plannedVisa.value = null
+          const hdrs: any = { 'content-type': 'application/json' }
+          if (!sessionId.value) ensureSession()
+          if (sessionId.value) hdrs['x-session-id'] = sessionId.value
+          await fetch('/api/planned-visa', { method: 'DELETE', headers: hdrs })
+          showToast('Đã bỏ chọn dự định')
+        } catch (e: any) {
+          showToast('Bỏ chọn thất bại: ' + String(e))
+        }
+        return
+      }
+
+      const toSave = { code, type: selected.value.type, title: selected.value.def?.title }
+      try {
+        // send to server with session header
+        const hdrs: any = { 'content-type': 'application/json' }
+        if (!sessionId.value) ensureSession()
+        if (sessionId.value) hdrs['x-session-id'] = sessionId.value
+        const resp = await fetch('/api/planned-visa', { method: 'POST', headers: hdrs, body: JSON.stringify(toSave) })
+        if (resp.ok) {
+          const j = await resp.json().catch(() => null)
+          if (j && j.ok && j.data) {
+            plannedVisa.value = j.data
+            try { localStorage.setItem('planned_visa', JSON.stringify(j.data)) } catch (e) {}
+          } else {
+            plannedVisa.value = toSave
+            try { localStorage.setItem('planned_visa', JSON.stringify(toSave)) } catch (e) {}
+          }
+        } else {
+          // fallback to local save
+          plannedVisa.value = toSave
+          try { localStorage.setItem('planned_visa', JSON.stringify(toSave)) } catch (e) {}
+        }
+        showToast('Đã chọn ' + (toSave.title || toSave.code) + ' làm dự định')
+      } catch (e: any) {
+        showToast('Không thể lưu lựa chọn: ' + String(e))
+      }
+    }
+
+    async function clearPlannedRow(row: any) {
+      try {
+        if (!sessionId.value) ensureSession()
+        const hdrs: any = {}
+        if (sessionId.value) hdrs['x-session-id'] = sessionId.value
+        const resp = await fetch('/api/planned-visa', { method: 'DELETE', headers: hdrs })
+        if (resp.ok) {
+          plannedVisa.value = null
+          try { localStorage.removeItem('planned_visa') } catch (e) {}
+          showToast('Đã bỏ chọn dự định')
+        } else {
+          showToast('Bỏ chọn thất bại')
+        }
+      } catch (e) {
+        showToast('Bỏ chọn thất bại')
       }
     }
     const visaRows = [
@@ -237,7 +352,7 @@ export default defineComponent({
       })
     })
 
-    return { searchQuery, filterPurpose, purposes, filteredVisas, selected, openDetails, closeDetails, latestAssessment, evalReq }
+    return { searchQuery, filterPurpose, purposes, filteredVisas, selected, openDetails, closeDetails, latestAssessment, evalReq, plannedVisa, selectAsPlan, toastMessage, toastVisible, clearPlannedRow, sessionId, visaRows }
   }
 })
 </script>

@@ -3,100 +3,58 @@
     <h1 class="text-2xl font-bold mb-4">Khảo sát khả năng đi Úc</h1>
 
     <div class="bg-white p-4 border rounded">
-      <p class="text-sm text-gray-600 mb-4">Nhập thông tin ở cột trái; các cột bên phải hiển thị ngưỡng cần đạt cho từng mức (Cao / Trung bình / Thấp).</p>
+      <p class="text-sm text-gray-600 mb-4">Nhập thông tin ở cột trái; bảng hiển thị Điều kiện cần đạt theo loại visa và trạng thái ĐỦ/CHƯA ĐỦ.</p>
 
       <div class="overflow-x-auto">
         <table class="w-full table-auto text-sm border-collapse">
           <thead>
             <tr class="text-left border-b">
-              <th class="p-2">Tiêu chí (Bạn nhập)</th>
-              <th class="p-2">Cột nhập</th>
-              <th class="p-2">Chi tiết phù hợp</th>
-              <th class="p-2">Ngưỡng - Cao</th>
-              <th class="p-2">Ngưỡng - Trung bình</th>
-              <th class="p-2">Ngưỡng - Thấp</th>
+              <th class="p-2">Tiêu chí</th>
+              <th class="p-2">Bạn nhập</th>
+              <th class="p-2">Điều kiện cần đạt</th>
+              <th class="p-2">Trạng thái</th>
             </tr>
           </thead>
           <tbody>
-            <tr class="border-b">
-              <td class="p-2">Tuổi</td>
-              <td class="p-2"><input type="number" v-model.number="age" class="w-24 border rounded px-2 py-1" /></td>
+            <tr v-for="(m, idx) in matches" :key="idx" class="border-b">
+              <td class="p-2">{{ m.criteria }}</td>
               <td class="p-2">
-                <div class="text-sm">
-                  <span :class="matches[0].meets.high ? 'text-green-600' : 'text-gray-500'">Cao: {{ matches[0].meets.high ? '✓' : '—' }}</span>
-                  <span class="ml-2" :class="matches[0].meets.medium ? 'text-green-600' : 'text-gray-500'">Trung: {{ matches[0].meets.medium ? '✓' : '—' }}</span>
-                  <span class="ml-2" :class="matches[0].meets.low ? 'text-green-600' : 'text-gray-500'">Thấp: {{ matches[0].meets.low ? '✓' : '—' }}</span>
+                <div>
+                  <template v-if="m.criteria === 'Tuổi'">
+                    <input type="number" v-model.number="age" class="w-24 border rounded px-2 py-1" />
+                  </template>
+                  <template v-else-if="m.criteria === 'Học vấn'">
+                    <select v-model="education" class="border rounded px-2 py-1">
+                      <option value="highschool">Trung học</option>
+                      <option value="bachelor">Cử nhân</option>
+                      <option value="master">Thạc sĩ+</option>
+                    </select>
+                  </template>
+                  <template v-else-if="m.criteria === 'IELTS'">
+                    <input type="number" step="0.5" v-model.number="ielts" class="w-24 border rounded px-2 py-1" />
+                  </template>
+                  <template v-else-if="m.criteria === 'Funds (AUD)'">
+                    <div class="flex flex-col gap-2">
+                      <input type="number" v-model.number="funds" class="w-full border rounded px-2 py-1" placeholder="AUD" />
+                      <input type="text" v-model="fundsVndDisplay" @input="onFundsVndInput" class="w-full border rounded px-2 py-1" placeholder="VND (nhập số, tự format)" />
+                    </div>
+                  </template>
+                  <template v-else-if="m.criteria === 'Kinh nghiệm (năm)'">
+                    <input type="number" v-model.number="experience" class="w-24 border rounded px-2 py-1" />
+                  </template>
+                  <template v-else>
+                    {{ m.valueDisplay }}
+                  </template>
                 </div>
               </td>
-              <td class="p-2">≤ 35</td>
-              <td class="p-2">≤ 45</td>
-              <td class="p-2">Any</td>
-            </tr>
-
-            <tr class="border-b">
-              <td class="p-2">Học vấn</td>
               <td class="p-2">
-                <select v-model="education" class="border rounded px-2 py-1">
-                  <option value="highschool">Trung học</option>
-                  <option value="bachelor">Cử nhân</option>
-                  <option value="master">Thạc sĩ+</option>
-                </select>
-              </td>
-              <td class="p-2">
-                <div class="text-sm">
-                  <span :class="matches[1].meets.high ? 'text-green-600' : 'text-gray-500'">Cao: {{ matches[1].meets.high ? '✓' : '—' }}</span>
-                  <span class="ml-2" :class="matches[1].meets.medium ? 'text-green-600' : 'text-gray-500'">Trung: {{ matches[1].meets.medium ? '✓' : '—' }}</span>
-                  <span class="ml-2" :class="matches[1].meets.low ? 'text-green-600' : 'text-gray-500'">Thấp: {{ matches[1].meets.low ? '✓' : '—' }}</span>
+                <div>{{ m.requiredText }}</div>
+                <div v-if="m.criteria === 'Funds (AUD)'" class="text-xs text-gray-600 mt-1">
+                  Visa ước tính: <strong>{{ requiredAud }} AUD</strong>
+                  <span v-if="formattedRequiredVnd">(~ {{ formattedRequiredVnd }})</span>
                 </div>
               </td>
-              <td class="p-2">Thạc sĩ+</td>
-              <td class="p-2">Cử nhân</td>
-              <td class="p-2">Trung học</td>
-            </tr>
-
-            <tr class="border-b">
-              <td class="p-2">IELTS (band)</td>
-              <td class="p-2"><input type="number" step="0.5" v-model.number="ielts" class="w-24 border rounded px-2 py-1" /></td>
-              <td class="p-2">
-                <div class="text-sm">
-                  <span :class="matches[2].meets.high ? 'text-green-600' : 'text-gray-500'">Cao: {{ matches[2].meets.high ? '✓' : '—' }}</span>
-                  <span class="ml-2" :class="matches[2].meets.medium ? 'text-green-600' : 'text-gray-500'">Trung: {{ matches[2].meets.medium ? '✓' : '—' }}</span>
-                  <span class="ml-2" :class="matches[2].meets.low ? 'text-green-600' : 'text-gray-500'">Thấp: {{ matches[2].meets.low ? '✓' : '—' }}</span>
-                </div>
-              </td>
-              <td class="p-2">≥ 6.5</td>
-              <td class="p-2">≥ 6.0</td>
-              <td class="p-2">≥ 5.0</td>
-            </tr>
-
-            <tr class="border-b">
-              <td class="p-2">Số dư tài khoản (AUD)</td>
-              <td class="p-2"><input type="number" v-model.number="funds" class="w-40 border rounded px-2 py-1" /></td>
-              <td class="p-2">
-                <div class="text-sm">
-                  <span :class="matches[3].meets.high ? 'text-green-600' : 'text-gray-500'">Cao: {{ matches[3].meets.high ? '✓' : '—' }}</span>
-                  <span class="ml-2" :class="matches[3].meets.medium ? 'text-green-600' : 'text-gray-500'">Trung: {{ matches[3].meets.medium ? '✓' : '—' }}</span>
-                  <span class="ml-2" :class="matches[3].meets.low ? 'text-green-600' : 'text-gray-500'">Thấp: {{ matches[3].meets.low ? '✓' : '—' }}</span>
-                </div>
-              </td>
-              <td class="p-2">≥ 20,000</td>
-              <td class="p-2">≥ 10,000</td>
-              <td class="p-2">Any</td>
-            </tr>
-
-            <tr class="border-b">
-              <td class="p-2">Kinh nghiệm làm việc (năm)</td>
-              <td class="p-2"><input type="number" v-model.number="experience" class="w-24 border rounded px-2 py-1" /></td>
-              <td class="p-2">
-                <div class="text-sm">
-                  <span :class="matches[4].meets.high ? 'text-green-600' : 'text-gray-500'">Cao: {{ matches[4].meets.high ? '✓' : '—' }}</span>
-                  <span class="ml-2" :class="matches[4].meets.medium ? 'text-green-600' : 'text-gray-500'">Trung: {{ matches[4].meets.medium ? '✓' : '—' }}</span>
-                  <span class="ml-2" :class="matches[4].meets.low ? 'text-green-600' : 'text-gray-500'">Thấp: {{ matches[4].meets.low ? '✓' : '—' }}</span>
-                </div>
-              </td>
-              <td class="p-2">≥ 3</td>
-              <td class="p-2">≥ 1</td>
-              <td class="p-2">0</td>
+              <td class="p-2"><span :class="m.meets ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'">{{ m.meets ? 'ĐỦ' : 'CHƯA ĐỦ' }}</span></td>
             </tr>
           </tbody>
         </table>
@@ -132,7 +90,7 @@
         </div>
 
         <div class="mt-3 text-sm bg-gray-50 p-3 rounded">
-          <div>Yêu cầu ước tính (AUD): <strong class="ml-2">{{ requiredAud }}</strong></div>
+          <div>Yêu cầu ước tính: <strong class="ml-2">{{ requiredAud }} AUD</strong> <span v-if="formattedRequiredVnd">(~ {{ formattedRequiredVnd }})</span></div>
           <div v-if="converted !== null">Tương đương: <strong>{{ converted }} {{ targetCurrency }}</strong></div>
           <div class="mt-2 text-xs text-gray-600">Ghi chú: các con số là ước tính tham khảo. Vui lòng kiểm tra trang chính thức của Department of Home Affairs để biết yêu cầu chi tiết theo từng visa.</div>
           <div class="mt-1 text-xs">
@@ -150,7 +108,7 @@
             <li v-for="(v, idx) in recommendedVisas" :key="idx" class="p-3 bg-white border rounded">
               <div class="font-semibold">{{ v.label }}</div>
               <div class="text-xs text-gray-700 mt-1">Lý do: {{ v.reason }}</div>
-              <div class="text-xs text-gray-500 mt-1">Tham khảo: <a :href="visaDefinitions[v.key]?.link" target="_blank" rel="noreferrer" class="text-blue-600">{{ visaDefinitions[v.key]?.linkLabel }}</a></div>
+              <div class="text-xs text-gray-500 mt-1">Tham khảo: <a :href="getVisaDef(v.key)?.link" target="_blank" rel="noreferrer" class="text-blue-600">{{ getVisaDef(v.key)?.linkLabel }}</a></div>
             </li>
           </ul>
         </div>
@@ -162,7 +120,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue'
+import { defineComponent, ref, computed, watch, onMounted } from 'vue'
 
 function eduRank(e: string) {
   if (e === 'master') return 3
@@ -172,214 +130,306 @@ function eduRank(e: string) {
 
 export default defineComponent({
   name: 'Assessment',
-  setup() {
-    const age = ref<number | null>(null)
-    const education = ref('bachelor')
-    const ielts = ref<number | null>(null)
-    const funds = ref<number | null>(null)
-    const experience = ref<number | null>(0)
+  props: {
+    initialVisaType: { type: String, required: false }
+  },
+  setup(props) {
+    const runtimeError = ref<string | null>(null)
+    try {
+      const age = ref<number | null>(null)
+      const education = ref('bachelor')
+      const ielts = ref<number | null>(null)
+      const funds = ref<number | null>(null)
+      const fundsVndDisplay = ref<string>('')
+      const fundsVndNumeric = ref<number | null>(null)
+      const audToVnd = ref<number | null>(null)
+      const experience = ref<number | null>(0)
 
-    const thresholds = {
-      high: { age: 35, edu: 3, ielts: 6.5, funds: 20000, exp: 3 },
-      medium: { age: 45, edu: 2, ielts: 6.0, funds: 10000, exp: 1 },
-      low: { age: 200, edu: 1, ielts: 5.0, funds: 0, exp: 0 }
-    }
-
-    function meetsThresholds() {
-      const vAge = (age.value ?? 999)
-      const vEdu = eduRank(education.value)
-      const vIelts = (ielts.value ?? 0)
-      const vFunds = (funds.value ?? 0)
-      const vExp = (experience.value ?? 0)
-
-      return [
-        {
-          criteria: 'Tuổi', valueDisplay: age.value ?? '-',
-          meets: {
-            high: vAge <= thresholds.high.age,
-            medium: vAge <= thresholds.medium.age,
-            low: true
-          }
-        },
-        {
-          criteria: 'Học vấn', valueDisplay: education.value,
-          meets: {
-            high: vEdu >= thresholds.high.edu,
-            medium: vEdu >= thresholds.medium.edu,
-            low: vEdu >= thresholds.low.edu
-          }
-        },
-        {
-          criteria: 'IELTS', valueDisplay: ielts.value ?? '-',
-          meets: {
-            high: vIelts >= thresholds.high.ielts,
-            medium: vIelts >= thresholds.medium.ielts,
-            low: vIelts >= thresholds.low.ielts
-          }
-        },
-        {
-          criteria: 'Funds (AUD)', valueDisplay: funds.value ?? '-',
-          meets: {
-            high: vFunds >= thresholds.high.funds,
-            medium: vFunds >= thresholds.medium.funds,
-            low: true
-          }
-        },
-        {
-          criteria: 'Kinh nghiệm (năm)', valueDisplay: experience.value ?? '-',
-          meets: {
-            high: vExp >= thresholds.high.exp,
-            medium: vExp >= thresholds.medium.exp,
-            low: vExp >= thresholds.low.exp
-          }
-        }
-      ]
-    }
-
-    const matches = computed(() => meetsThresholds())
-
-    const result = ref({ level: 'Chưa đánh giá', score: { highCount: 0, medCount: 0 } as any })
-
-    function evaluate() {
-      // Simple scoring: count meets for high/medium thresholds
-      const m = matches.value
-      let highCount = 0
-      let medCount = 0
-      m.forEach(r => { if (r.meets.high) highCount++; if (r.meets.medium) medCount++ })
-
-      if (highCount >= 4) result.value.level = 'Cao'
-      else if (medCount >= 3) result.value.level = 'Trung bình'
-      else result.value.level = 'Thấp'
-      result.value.score = { highCount, medCount }
-      // Persist the latest assessment so other components can reference it
-      try {
-        const snapshot = {
-          age: age.value,
-          education: education.value,
-          ielts: ielts.value,
-          funds: funds.value,
-          experience: experience.value,
-          result: result.value
-        }
-        localStorage.setItem('latest_assessment', JSON.stringify(snapshot))
-      } catch (e) {
-        // ignore storage errors
+      const thresholds = {
+        high: { age: 35, edu: 3, ielts: 6.5, funds: 20000, exp: 3 },
+        medium: { age: 45, edu: 2, ielts: 6.0, funds: 10000, exp: 1 },
+        low: { age: 200, edu: 1, ielts: 5.0, funds: 0, exp: 0 }
       }
-    }
 
-    function reset() {
-      age.value = null; education.value = 'bachelor'; ielts.value = null; funds.value = null; experience.value = 0
-      result.value = { level: 'Chưa đánh giá', score: 0 }
-      try { localStorage.removeItem('latest_assessment') } catch (e) {}
-    }
-
-    // --- New: currency conversion + visa required amounts ---
-    const visaType = ref<'student'|'skilled'|'workingHoliday'|'visitor'>('student')
-    const targetCurrency = ref('VND')
-    const converted = ref<number | null>(null)
-
-    const visaMinimums: Record<string, number> = {
-      // NOTE: these are estimates for demo — always verify with official sources
-      student: 21041, // approximate living cost per year (AUD) reference Home Affairs guidance
-      skilled: 30000, // settlement estimate (AUD) - conservative demo value
-      workingHoliday: 5000, // rough recommended buffer (AUD)
-      visitor: 1500 // per-month approximate (AUD)
-    }
-
-    const requiredAud = computed(() => {
-      return visaMinimums[visaType.value] ?? visaMinimums.student
-    })
-
-    async function convertRequired() {
-      converted.value = null
-      try {
-        const to = (targetCurrency.value || 'VND').toUpperCase()
-        const amt = requiredAud.value
-        const res = await fetch(`https://api.exchangerate.host/convert?from=AUD&to=${to}&amount=${amt}`)
-        const data = await res.json()
-        if (data && typeof data.result === 'number') {
-          converted.value = Math.round(data.result)
+      function meetsThresholds() {
+        const vAge = (age.value ?? 999)
+        const vEdu = eduRank(education.value)
+        const vIelts = (ielts.value ?? 0)
+        // derive funds in AUD: prefer `funds` (AUD); if only VND provided, convert using fetched rate
+        let vFunds = 0
+        if (typeof funds.value === 'number' && !Number.isNaN(funds.value)) vFunds = funds.value
+        else if (typeof fundsVndNumeric.value === 'number' && audToVnd.value && audToVnd.value > 0) {
+          vFunds = Math.round(fundsVndNumeric.value / audToVnd.value)
         } else {
+          vFunds = 0
+        }
+        const vExp = (experience.value ?? 0)
+
+        return [
+          {
+            criteria: 'Tuổi', valueDisplay: age.value ?? '-',
+            requiredText: `≤ ${thresholds.medium.age}`,
+            meets: vAge <= thresholds.medium.age
+          },
+          {
+            criteria: 'Học vấn', valueDisplay: education.value,
+            requiredText: `≥ ${thresholds.medium.edu === 3 ? 'Thạc sĩ+' : thresholds.medium.edu === 2 ? 'Cử nhân' : 'Trung học'}`,
+            meets: vEdu >= thresholds.medium.edu
+          },
+          {
+            criteria: 'IELTS', valueDisplay: ielts.value ?? '-',
+            requiredText: `≥ ${thresholds.medium.ielts}`,
+            meets: vIelts >= thresholds.medium.ielts
+          },
+          {
+            criteria: 'Funds (AUD)', valueDisplay: (funds.value ?? (fundsVndDisplay.value ? `${fundsVndDisplay.value} VND` : '-')),
+            requiredText: `≥ ${thresholds.medium.funds} AUD${audToVnd.value ? ` (~ ${formatDigitsWithCommas(String(Math.round(thresholds.medium.funds * audToVnd.value)))} VND)` : ''}`,
+            meets: vFunds >= thresholds.medium.funds
+          },
+          {
+            criteria: 'Kinh nghiệm (năm)', valueDisplay: experience.value ?? '-',
+            requiredText: `≥ ${thresholds.medium.exp}`,
+            meets: vExp >= thresholds.medium.exp
+          }
+        ]
+      }
+
+      const matches = computed(() => meetsThresholds())
+
+      const result = ref({ level: 'Chưa đánh giá', score: { highCount: 0, medCount: 0 } as any })
+
+      function evaluate() {
+        // Binary-style scoring: count how many criteria meet the medium threshold
+        const m = matches.value
+        let meetCount = 0
+        m.forEach(r => { if (r.meets) meetCount++ })
+
+        if (meetCount >= 3) result.value.level = 'ĐỦ'
+        else result.value.level = 'CHƯA ĐỦ'
+        result.value.score = { meetCount }
+        // Persist the latest assessment so other components can reference it
+        try {
+          const snapshot = {
+            age: age.value,
+            education: education.value,
+            ielts: ielts.value,
+            funds: funds.value,
+            experience: experience.value,
+            result: result.value
+          }
+          localStorage.setItem('latest_assessment', JSON.stringify(snapshot))
+        } catch (e) {
+          // ignore storage errors
+        }
+      }
+
+      function reset() {
+        age.value = null; education.value = 'bachelor'; ielts.value = null; funds.value = null; experience.value = 0
+        result.value = { level: 'Chưa đánh giá', score: 0 }
+        try { localStorage.removeItem('latest_assessment') } catch (e) {}
+      }
+
+      // --- New: currency conversion + visa required amounts ---
+      const visaType = ref<'student'|'skilled'|'workingHoliday'|'visitor'>(props.initialVisaType as any || 'student')
+      const targetCurrency = ref('VND')
+      const converted = ref<number | null>(null)
+
+      const visaMinimums: Record<string, number> = {
+        // NOTE: these are estimates for demo — always verify with official sources
+        student: 21041, // approximate living cost per year (AUD) reference Home Affairs guidance
+        skilled: 30000, // settlement estimate (AUD) - conservative demo value
+        workingHoliday: 5000, // rough recommended buffer (AUD)
+        visitor: 1500 // per-month approximate (AUD)
+      }
+
+      const requiredAud = computed(() => {
+        return visaMinimums[visaType.value] ?? visaMinimums.student
+      })
+
+      // required amount in VND (approx) using fetched AUD->VND rate
+      const requiredVnd = computed(() => {
+        const rate = audToVnd.value
+        if (!rate || typeof rate !== 'number' || Number.isNaN(rate)) return null
+        const v = Math.round((requiredAud.value || 0) * rate)
+        return v
+      })
+
+      const formattedRequiredVnd = computed(() => {
+        if (!requiredVnd.value) return null
+        return formatDigitsWithCommas(String(requiredVnd.value)) + ' VND'
+      })
+
+      async function convertRequired() {
+        try {
+          const to = (targetCurrency.value || 'VND').toUpperCase()
+          const amt = requiredAud.value
+          const res = await fetch(`https://api.exchangerate.host/convert?from=AUD&to=${to}&amount=${amt}`)
+          const data = await res.json()
+          if (data && typeof data.result === 'number') {
+            converted.value = Math.round(data.result)
+          } else {
+            converted.value = NaN
+          }
+        } catch (e) {
           converted.value = NaN
         }
-      } catch (e) {
-        converted.value = NaN
       }
-    }
 
-    // Simple visa definitions for UI reference
-    const visaDefinitions: Record<string, { title: string; desc: string; link: string; linkLabel: string }> = {
-      student: {
-        title: 'Student (subclass 500)',
-        desc: 'Visa cho du học sinh; cần COE, bằng cấp, và bằng chứng tài chính. Thường là lộ trình nếu cần nâng điểm/tiếng Anh.',
-        link: 'https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/student-500',
-        linkLabel: 'immi - Student 500'
-      },
-      skilled: {
-        title: 'Skilled / Permanent pathways',
-        desc: 'Các visa định cư lao động (skilled) yêu cầu điểm, tay nghề, tiếng Anh. Phù hợp với người có kinh nghiệm và trình độ cao.',
-        link: 'https://immi.homeaffairs.gov.au/visas/working-in-australia/skill-occupation-list',
-        linkLabel: 'immi - Skilled visas'
-      },
-      workingHoliday: {
-        title: 'Work & Holiday (subclass 462 / 417)',
-        desc: 'Visa tạm trú kết hợp làm việc dành cho người trẻ (tuổi giới hạn theo quốc gia). Thích hợp để trải nghiệm + kiếm tiền ngắn hạn.',
-        link: 'https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/work-holiday-417',
-        linkLabel: 'immi - Work & Holiday'
-      },
-      visitor: {
-        title: 'Visitor / Tourist',
-        desc: 'Visa ngắn hạn để du lịch hoặc thăm thân; không cho phép làm việc (trừ một số tình huống hạn chế).',
-        link: 'https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/visitor-600',
-        linkLabel: 'immi - Visitor 600'
+      // fetch AUD -> VND rate once on mount to support VND input conversion
+      onMounted(async () => {
+        try {
+          const r = await fetch('https://api.exchangerate.host/latest?base=AUD&symbols=VND')
+          const d = await r.json()
+          if (d && d.rates && typeof d.rates.VND === 'number') audToVnd.value = d.rates.VND
+        } catch (e) {
+          // ignore — we'll fallback to a conservative estimate if needed
+          audToVnd.value = 16000
+        }
+      })
+
+      // format helper: format a digit-only string with commas, e.g. '1000000' -> '1,000,000'
+      function formatDigitsWithCommas(digits: string) {
+        if (!digits) return ''
+        const n = digits.replace(/^0+/, '') || '0'
+        return n.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
       }
-    }
 
-    // Recommendation engine: simple rule-based suggestions with short reasons
-    const recommendedVisas = computed(() => {
-      const out: Array<{ key: string; label: string; reason: string }> = []
-      const lvl = result.value.level
-      const vIelts = (ielts.value ?? 0)
-      const vEdu = eduRank(education.value)
-      const vExp = (experience.value ?? 0)
-      const vAge = (age.value ?? 100)
-      const vFunds = (funds.value ?? 0)
+      function onFundsVndInput(e?: Event) {
+        // single-line numeric input: strip non-digits, format with commas, and store numeric value
+        const raw = fundsVndDisplay.value || ''
+        const digits = raw.replace(/[^0-9]/g, '')
+        fundsVndDisplay.value = digits ? formatDigitsWithCommas(digits) : ''
+        fundsVndNumeric.value = digits ? parseInt(digits, 10) : null
+      }
 
-      // High level => consider Skilled first if English/education/experience are strong
-      if (lvl === 'Cao') {
-        if (vIelts >= 6.5 && vEdu >= 2 && vExp >= 1) {
-          out.push({ key: 'skilled', label: 'Skilled / PR', reason: 'IELTS cao, trình độ và kinh nghiệm phù hợp — đường lao động/định cư' })
+      // react to prop changes so parent can switch the survey type
+      // (useful when VisaTable selects different visa types)
+      watch(() => props.initialVisaType, (nv) => {
+        if (nv) {
+          // normalize common keys
+          if (nv === 'student' || nv === '500') visaType.value = 'student'
+          else if (nv === 'skilled' || nv === '189' || nv === '190') visaType.value = 'skilled'
+          else if (nv === 'workingHoliday' || nv.toString().includes('462')) visaType.value = 'workingHoliday'
+          else if (nv === 'visitor' || nv.toString().toLowerCase().includes('visitor') || nv === '600') visaType.value = 'visitor'
+          else visaType.value = nv as any
+        }
+      })
+
+      // Simple visa definitions for UI reference
+      const visaDefinitions: Record<string, { title: string; desc: string; link: string; linkLabel: string }> = {
+        student: {
+          title: 'Student (subclass 500)',
+          desc: 'Visa cho du học sinh; cần COE, bằng cấp, và bằng chứng tài chính. Thường là lộ trình nếu cần nâng điểm/tiếng Anh.',
+          link: 'https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/student-500',
+          linkLabel: 'immi - Student 500'
+        },
+        skilled: {
+          title: 'Skilled / Permanent pathways',
+          desc: 'Các visa định cư lao động (skilled) yêu cầu điểm, tay nghề, tiếng Anh. Phù hợp với người có kinh nghiệm và trình độ cao.',
+          link: 'https://immi.homeaffairs.gov.au/visas/working-in-australia/skill-occupation-list',
+          linkLabel: 'immi - Skilled visas'
+        },
+        workingHoliday: {
+          title: 'Work & Holiday (subclass 462 / 417)',
+          desc: 'Visa tạm trú kết hợp làm việc dành cho người trẻ (tuổi giới hạn theo quốc gia). Thích hợp để trải nghiệm + kiếm tiền ngắn hạn.',
+          link: 'https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/work-holiday-417',
+          linkLabel: 'immi - Work & Holiday'
+        },
+        visitor: {
+          title: 'Visitor / Tourist',
+          desc: 'Visa ngắn hạn để du lịch hoặc thăm thân; không cho phép làm việc (trừ một số tình huống hạn chế).',
+          link: 'https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/visitor-600',
+          linkLabel: 'immi - Visitor 600'
+        }
+      }
+
+      // Recommendation engine: simple rule-based suggestions with short reasons
+      const recommendedVisas = computed(() => {
+        const out: Array<{ key: string; label: string; reason: string }> = []
+        const lvl = result.value.level
+        const vIelts = (ielts.value ?? 0)
+        const vEdu = eduRank(education.value)
+        const vExp = (experience.value ?? 0)
+        const vAge = (age.value ?? 100)
+        // derive funds in AUD: prefer `funds` (AUD); if only VND provided, convert using fetched rate
+        let vFunds = 0
+        if (typeof funds.value === 'number' && !Number.isNaN(funds.value)) vFunds = funds.value
+        else if (typeof fundsVndNumeric.value === 'number' && audToVnd.value && audToVnd.value > 0) {
+          vFunds = Math.round(fundsVndNumeric.value / audToVnd.value)
         } else {
-          out.push({ key: 'student', label: 'Student (Học tập)', reason: 'Điểm tổng cao nhưng cần cải thiện một vài tiêu chí; học tập có thể là lộ trình' })
+          vFunds = 0
         }
-      } else if (lvl === 'Trung bình') {
-        // Medium: either student route or skilled with improvement
-        if (vFunds >= 10000 && vIelts >= 6.0) {
-          out.push({ key: 'student', label: 'Student (Học tập)', reason: 'Quỹ và tiếng Anh đủ cho học tập; có thể dùng học để cải thiện điểm' })
+
+        if (lvl === 'Cao') {
+          if (vIelts >= 6.5 && vEdu >= 2 && vExp >= 1) {
+            out.push({ key: 'skilled', label: 'Skilled / PR', reason: 'IELTS cao, trình độ và kinh nghiệm phù hợp — đường lao động/định cư' })
+          } else {
+            out.push({ key: 'student', label: 'Student (Học tập)', reason: 'Điểm tổng cao nhưng cần cải thiện một vài tiêu chí; học tập có thể là lộ trình' })
+          }
+        } else if (lvl === 'Trung bình') {
+          // Medium: either student route or skilled with improvement
+          if (vFunds >= 10000 && vIelts >= 6.0) {
+            out.push({ key: 'student', label: 'Student (Học tập)', reason: 'Quỹ và tiếng Anh đủ cho học tập; có thể dùng học để cải thiện điểm' })
+          }
+          if (vIelts >= 6.0 && vEdu >= 2) {
+            out.push({ key: 'skilled', label: 'Skilled (cần cải thiện)', reason: 'Cơ bản phù hợp cho lộ trình lao động nếu nâng nhẹ trình độ/kinh nghiệm' })
+          }
+          if (out.length === 0) {
+            out.push({ key: 'visitor', label: 'Visitor / Explore', reason: 'Hiện chưa đủ điều kiện; có thể tới thăm để tìm hướng (không làm việc)' })
+          }
+        } else {
+          // Low
+          if (vAge >= 18 && vAge <= 30) {
+            out.push({ key: 'workingHoliday', label: 'Work & Holiday', reason: 'Tuổi phù hợp, khoản tiền nhỏ là đủ để khởi đầu' })
+          }
+          out.push({ key: 'visitor', label: 'Visitor / Tourist', reason: 'Điểm thấp — lộ trình ngắn hạn hoặc chuẩn bị thêm hồ sơ' })
         }
-        if (vIelts >= 6.0 && vEdu >= 2) {
-          out.push({ key: 'skilled', label: 'Skilled (cần cải thiện)', reason: 'Cơ bản phù hợp cho lộ trình lao động nếu nâng nhẹ trình độ/kinh nghiệm' })
+
+        // Always include student as an option if funds and age are okay
+        if (vFunds >= 5000 && !out.find(x => x.key === 'student')) {
+          out.push({ key: 'student', label: 'Student (Học tập)', reason: 'Học tập là lộ trình phổ dụng để nâng trình độ và điểm' })
         }
-        if (out.length === 0) {
-          out.push({ key: 'visitor', label: 'Visitor / Explore', reason: 'Hiện chưa đủ điều kiện; có thể tới thăm để tìm hướng (không làm việc)' })
-        }
-      } else {
-        // Low
-        if (vAge >= 18 && vAge <= 30) {
-          out.push({ key: 'workingHoliday', label: 'Work & Holiday', reason: 'Tuổi phù hợp, khoản tiền nhỏ là đủ để khởi đầu' })
-        }
-        out.push({ key: 'visitor', label: 'Visitor / Tourist', reason: 'Điểm thấp — lộ trình ngắn hạn hoặc chuẩn bị thêm hồ sơ' })
+
+        return out
+      })
+        const getVisaDef = (k: string) => (visaDefinitions as any)[k]
+
+        return { age, education, ielts, funds, fundsVndDisplay, onFundsVndInput, experience, thresholds, matches, evaluate, reset, result, visaType, targetCurrency, converted, requiredAud, requiredVnd, formattedRequiredVnd, convertRequired, visaDefinitions, recommendedVisas, getVisaDef }
+    } catch (e: any) {
+      console.error('Assessment setup error', e)
+      runtimeError.value = e && e.message ? e.message : String(e)
+      // return safe defaults so template bindings don't blow up
+      const safeRef = (v: any) => ref(v)
+      return {
+        runtimeError,
+        age: safeRef(null),
+        education: safeRef('bachelor'),
+        ielts: safeRef(null),
+        funds: safeRef(null),
+        fundsVndDisplay: safeRef(''),
+        onFundsVndInput: () => {},
+        experience: safeRef(0),
+        thresholds: {
+          high: { age: 35, edu: 3, ielts: 6.5, funds: 20000, exp: 3 },
+          medium: { age: 45, edu: 2, ielts: 6.0, funds: 10000, exp: 1 },
+          low: { age: 200, edu: 1, ielts: 5.0, funds: 0, exp: 0 }
+        },
+        matches: computed(() => []),
+        evaluate: () => {},
+        reset: () => {},
+        result: safeRef({ level: 'Chưa đánh giá', score: {} }),
+        visaType: safeRef('student'),
+        targetCurrency: safeRef('VND'),
+        converted: safeRef(null),
+        requiredAud: computed(() => 0),
+        requiredVnd: computed(() => null),
+        formattedRequiredVnd: safeRef(null),
+        convertRequired: async () => {},
+        visaDefinitions: {},
+        recommendedVisas: computed(() => []),
+        getVisaDef: (k: string) => undefined
       }
-
-      // Always include student as an option if funds and age are okay
-      if (vFunds >= 5000 && !out.find(x => x.key === 'student')) {
-        out.push({ key: 'student', label: 'Student (Học tập)', reason: 'Học tập là lộ trình phổ dụng để nâng trình độ và điểm' })
-      }
-
-      return out
-    })
-
-    return { age, education, ielts, funds, experience, thresholds, matches, evaluate, reset, result, visaType, targetCurrency, converted, requiredAud, convertRequired, visaDefinitions, recommendedVisas }
+    }
   }
 })
 </script>

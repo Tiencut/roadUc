@@ -2,6 +2,7 @@
 import cors from 'cors'
 import { z } from 'zod'
 import * as db from './db.js'
+import { fetchAndCacheVisas, getVisasMetadata } from './visas.js'
 const app = express()
 const port = Number(process.env.PORT || 3000)
 
@@ -56,6 +57,46 @@ app.get('/api/schools', async (req, res) => {
 
     schoolsCache = { ts: now, data: { results: normalized } }
     res.json({ source: 'api', count: normalized.length, data: { results: normalized } })
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message || String(e) })
+  }
+})
+
+// Visas normalized API + metadata
+app.get('/api/visas', async (req, res) => {
+  try {
+    const refresh = req.query.refresh === 'true'
+    const resp = await fetchAndCacheVisas(refresh)
+    // attach planned visa for this session (if any)
+    const sessionId = String(req.headers['x-session-id'] || 'global')
+    const planned = db.getPlannedVisa(sessionId)
+    const metaWithPlanned = { ...resp.meta, planned }
+    res.json({ ok: true, count: resp.data?.results?.length || 0, data: resp.data, meta: metaWithPlanned })
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message || String(e) })
+  }
+})
+
+app.get('/api/visas/metadata', async (_req, res) => {
+  try {
+    let meta = await getVisasMetadata()
+    // If no metadata cached, try to fetch (non-forced) to populate cache.
+    if (!meta) {
+      try {
+        const resp = await fetchAndCacheVisas(false)
+        if (resp && resp.meta) {
+          meta = resp.meta
+          // return populated meta
+          return res.json({ ok: true, meta })
+        }
+      } catch (err) {
+        // ignore fetch error, we'll return a safe placeholder below
+        console.warn('Visas metadata fetch failed:', String(err))
+      }
+      // return an empty-but-200 metadata object so FE can handle gracefully
+      return res.json({ ok: true, meta: { fetchedAt: null, source: null, version: null, note: 'no metadata cached' } })
+    }
+    res.json({ ok: true, meta })
   } catch (e: any) {
     res.status(500).json({ error: e?.message || String(e) })
   }
@@ -116,6 +157,39 @@ app.delete('/api/checklist/:id', async (req, res) => {
   if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid id' })
   db.deleteChecklist(id)
   res.json({ ok: true })
+})
+
+// Planned visa persistence (simple per-app storage)
+app.get('/api/planned-visa', async (req, res) => {
+  try {
+    const sessionId = String(req.headers['x-session-id'] || 'global')
+    const pv = db.getPlannedVisa(sessionId)
+    res.json({ ok: true, data: pv })
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message || String(e) })
+  }
+})
+
+app.post('/api/planned-visa', async (req, res) => {
+  try {
+    const sessionId = String(req.headers['x-session-id'] || 'global')
+    const body = req.body || null
+    if (!body || !body.code) return res.status(400).json({ error: 'Invalid body, expected { code, type?, title? }' })
+    const saved = db.setPlannedVisa(sessionId, { code: body.code, type: body.type || null, title: body.title || null })
+    res.json({ ok: true, data: saved })
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message || String(e) })
+  }
+})
+
+app.delete('/api/planned-visa', async (req, res) => {
+  try {
+    const sessionId = String(req.headers['x-session-id'] || 'global')
+    const cleared = db.clearPlannedVisa(sessionId)
+    res.json({ ok: true, data: cleared })
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message || String(e) })
+  }
 })
 
 app.listen(port, () => {
