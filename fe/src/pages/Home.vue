@@ -2,7 +2,6 @@
   <div class="max-w-6xl mx-auto px-4 py-8">
     <!-- Lộ trình tổng quát -->
     <Roadmap :currentStep="1" />
-    <CostEstimator />
 
     <!-- Bảng  -->
     <VisaTable />

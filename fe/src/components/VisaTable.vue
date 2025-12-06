@@ -23,11 +23,12 @@
             <th class="p-2 border">Mục đích chính</th>
             <th class="p-2 border">Thời hạn lưu trú</th>
             <th class="p-2 border">Đối tượng phổ biến</th>
+            <th class="p-2 border">Lợi nhuận ước tính / lần đi</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="filteredVisas.length === 0">
-            <td colspan="5" class="p-3 text-center text-sm text-gray-600">Không có kết quả khớp.</td>
+            <td colspan="6" class="p-3 text-center text-sm text-gray-600">Không có kết quả khớp.</td>
           </tr>
           <tr v-for="(v, i) in filteredVisas" :key="i" class="border-b hover:bg-gray-50 cursor-pointer" @click="openDetails(v)" tabindex="0" @keydown.enter.prevent="openDetails(v)">
             <td class="p-2">
@@ -43,6 +44,12 @@
             <td class="p-2">
               <div class="flex items-center">
                 <span>{{ v.audience }}</span>
+              </div>
+            </td>
+            <td class="p-2">
+              <div class="text-sm">
+                <div>{{ formatProfit(v).aud }}</div>
+                <div class="text-xs text-gray-500">{{ formatProfit(v).vnd }}</div>
               </div>
             </td>
           </tr>
@@ -99,6 +106,92 @@ export default defineComponent({
   name: 'VisaTable',
   components: { Assessment },
   setup() {
+    // --- Profit estimation heuristics ---
+    const audToVnd = ref<number>(16000)
+    try {
+      const raw = localStorage.getItem('aud_to_vnd')
+      if (raw) {
+        const n = parseInt(raw, 10)
+        if (!Number.isNaN(n)) audToVnd.value = n
+      }
+    } catch (e) {}
+
+    const visaEarningsMonthly: Record<string, number> = {
+      '600 (Tourist/Sponsored Family Stream)': 0, // visitor usually cannot work
+      '600 (Business Visitor Stream)': 1000, // per trip short-term consultancy
+      '500': 800, // assume part-time/on-campus work contribution per month
+      '590': 0,
+      '482': 2500,
+      '485 (Graduate Temporary)': 2000,
+      '491': 2400,
+      '189': 3000,
+      '190': 3000,
+      '462 (Work & Holiday)': 1800,
+      '300/309/820': 0,
+      '143': 0,
+      'Transit': 0
+    }
+
+    const visaTripCost: Record<string, number> = {
+      '600 (Tourist/Sponsored Family Stream)': 800, // flight + misc
+      '600 (Business Visitor Stream)': 1200,
+      '500': 1500, // initial fees, flight, OSHC deposit
+      '590': 1500,
+      '482': 2000,
+      '485 (Graduate Temporary)': 1500,
+      '491': 2500,
+      '189': 3000,
+      '190': 3000,
+      '462 (Work & Holiday)': 1200,
+      '300/309/820': 2000,
+      '143': 5000,
+      'Transit': 200
+    }
+
+    function parseDurationMonths(duration: string) {
+      if (!duration) return 1
+      // try to find a number range like '3-12' or '1 year' -> convert heuristically
+      const m = String(duration).match(/(\d+)\s*-\s*(\d+)/)
+      if (m) return parseInt(m[2], 10)
+      const single = String(duration).match(/(\d+)\s*(tháng|month|years|year|năm)/i)
+      if (single) {
+        const n = parseInt(single[1], 10)
+        // if 'year' or 'năm' treat as 12*n
+        if (/year|năm/i.test(single[2])) return n * 12
+        return n
+      }
+      // common heuristics
+      if (/1 year|1 năm|1 năm/i.test(duration)) return 12
+      if (/1 năm/i.test(duration)) return 12
+      if (/1 year/i.test(duration)) return 12
+      if (/1 month|3 month|6 month|12 month|18 month/i.test(duration)) {
+        const num = (duration.match(/(\d+)/) || [null, 1])[1]
+        return parseInt(String(num), 10) || 1
+      }
+      // fallback: 1 month
+      return 1
+    }
+
+    function formatDigits(n: number) {
+      return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+    }
+
+    function formatProfitFor(v: any) {
+      const months = parseDurationMonths(v.duration || '')
+      const monthly = visaEarningsMonthly[v.code] ?? 0
+      const tripCost = visaTripCost[v.code] ?? 0
+      const totalIncome = monthly * months
+      const profit = totalIncome - tripCost
+      return { aud: profit, vnd: Math.round(profit * audToVnd.value) }
+    }
+
+    function formatProfit(v: any) {
+      const r = formatProfitFor(v)
+      if (isNaN(r.aud)) return { aud: '-', vnd: '' }
+      const sign = r.aud >= 0 ? '' : '-'
+      const absAud = Math.abs(r.aud)
+      return { aud: `${sign}${formatDigits(absAud)} AUD`, vnd: `${sign}${formatDigits(Math.abs(r.vnd))} VND` }
+    }
     // visa definitions including simple requirement checks
     const visaDefinitions: Record<string, { key: string; title: string; desc?: string; requirements?: Array<any>; guidance?: { before?: string[]; during?: string[]; after?: string[] } }> = {
       '600 (Tourist/Sponsored Family Stream)': {
@@ -352,7 +445,7 @@ export default defineComponent({
       })
     })
 
-    return { searchQuery, filterPurpose, purposes, filteredVisas, selected, openDetails, closeDetails, latestAssessment, evalReq, plannedVisa, selectAsPlan, toastMessage, toastVisible, clearPlannedRow, sessionId, visaRows }
+    return { searchQuery, filterPurpose, purposes, filteredVisas, selected, openDetails, closeDetails, latestAssessment, evalReq, plannedVisa, selectAsPlan, toastMessage, toastVisible, clearPlannedRow, sessionId, visaRows, formatProfit, formatProfitFor, audToVnd, parseDurationMonths }
   }
 })
 </script>
