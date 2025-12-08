@@ -100,6 +100,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue'
+import { useAuth } from '../composables/useAuth'
 import Assessment from '../pages/Assessment.vue'
 
 export default defineComponent({
@@ -252,6 +253,7 @@ export default defineComponent({
     }
 
     const selected = ref<any | null>(null)
+    const auth = useAuth()
     const latestAssessment = ref<any | null>(null)
     const plannedVisa = ref<any | null>(null)
     const toastMessage = ref<string | null>(null)
@@ -297,6 +299,7 @@ export default defineComponent({
         if (!sessionId.value) ensureSession()
         const hdrs: any = {}
         if (sessionId.value) hdrs['x-session-id'] = sessionId.value
+        try { if (auth.user.value) hdrs['authorization'] = 'Bearer ' + auth.user.value.token } catch (e) {}
         const resp = await fetch('/api/planned-visa', { headers: hdrs })
         if (resp.ok) {
           const j = await resp.json().catch(() => null)
@@ -373,10 +376,11 @@ export default defineComponent({
 
       const toSave = { code, type: selected.value.type, title: selected.value.def?.title }
       try {
-        // send to server with session header
+        // send to server with session header or user id when logged in
         const hdrs: any = { 'content-type': 'application/json' }
         if (!sessionId.value) ensureSession()
         if (sessionId.value) hdrs['x-session-id'] = sessionId.value
+        try { if (auth.user.value) hdrs['authorization'] = 'Bearer ' + auth.user.value.token } catch (e) {}
         const resp = await fetch('/api/planned-visa', { method: 'POST', headers: hdrs, body: JSON.stringify(toSave) })
         if (resp.ok) {
           const j = await resp.json().catch(() => null)
@@ -403,6 +407,7 @@ export default defineComponent({
         if (!sessionId.value) ensureSession()
         const hdrs: any = {}
         if (sessionId.value) hdrs['x-session-id'] = sessionId.value
+        try { if (auth.user.value) hdrs['authorization'] = 'Bearer ' + auth.user.value.token } catch (e) {}
         const resp = await fetch('/api/planned-visa', { method: 'DELETE', headers: hdrs })
         if (resp.ok) {
           plannedVisa.value = null

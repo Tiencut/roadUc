@@ -3,7 +3,12 @@
     <h2 class="text-xl font-bold mb-3">Lộ trình tổng quát</h2>
 
     <div class="flex items-center justify-between mb-4">
-      <div></div>
+      <div class="flex items-center space-x-2">
+        <button @click="filterPhase = 'all'" :class="filterPhase === 'all' ? 'bg-blue-600 text-white' : 'bg-white'" class="px-3 py-1 border rounded text-sm">Tất cả</button>
+        <button @click="filterPhase = 'before'" :class="filterPhase === 'before' ? 'bg-blue-600 text-white' : 'bg-white'" class="px-3 py-1 border rounded text-sm">Trước khi đi</button>
+        <button @click="filterPhase = 'during'" :class="filterPhase === 'during' ? 'bg-blue-600 text-white' : 'bg-white'" class="px-3 py-1 border rounded text-sm">Khi đang ở Úc</button>
+        <button @click="filterPhase = 'after'" :class="filterPhase === 'after' ? 'bg-blue-600 text-white' : 'bg-white'" class="px-3 py-1 border rounded text-sm">Sau khi về</button>
+      </div>
       <div class="flex items-center space-x-2">
         <div class="text-sm text-gray-700">Tiền tệ:</div>
         <button @click="toggleCurrency" class="px-3 py-1 border rounded text-sm bg-white hover:bg-gray-50">
@@ -14,7 +19,7 @@
     </div>
 
     <div class="space-y-6">
-      <div v-for="phase in phases" :key="phase.id" class="bg-white p-4 border rounded">
+      <div v-for="phase in filteredPhases" :key="phase.id" class="bg-white p-4 border rounded">
         <div class="flex items-center justify-between mb-2">
           <div class="font-semibold">{{ phase.title }}</div>
           <div class="text-xs text-right text-gray-700">
@@ -91,16 +96,12 @@
           </table>
         </div>
       </div>
-
-      <div class="bg-white p-4 border rounded shadow-sm">
-        <div class="text-sm text-gray-600">(Cost estimator removed — content displayed above)</div>
-      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue'
+import { defineComponent, ref, onMounted, computed } from 'vue'
 
 export default defineComponent({
   name: 'Roadmap',
@@ -263,6 +264,14 @@ export default defineComponent({
       currency.value = currency.value === 'VND' ? 'AUD' : 'VND'
     }
 
+    // filter phases: 'all' | 'before' | 'during' | 'after'
+    // Default to 'before' so the roadmap initially shows 'Trước khi đi' only
+    const filterPhase = ref<'all' | 'before' | 'during' | 'after'>('before')
+    const filteredPhases = computed(() => {
+      if (filterPhase.value === 'all') return phases
+      return phases.filter((p: any) => p.id === filterPhase.value)
+    })
+
     onMounted(() => {
       try {
         const raw = localStorage.getItem('latest_estimate')
@@ -360,7 +369,7 @@ export default defineComponent({
       }
     ]
 
-    return { phases, currentStep: props.currentStep, preTotalAud, duringTotalAud, postOneTimeAud, livingTotalAud, preRange, duringRange, postRange, livingRange, formatAud, formatVndFromAud, formatDigits, splitIntoLines, extractCostsFromHtml, parseCostStr, computeStepRange, computePhaseRange, formatRange, formatRangeVnd, currency, toggleCurrency }
+    return { phases, currentStep: props.currentStep, preTotalAud, duringTotalAud, postOneTimeAud, livingTotalAud, preRange, duringRange, postRange, livingRange, formatAud, formatVndFromAud, formatDigits, splitIntoLines, extractCostsFromHtml, parseCostStr, computeStepRange, computePhaseRange, formatRange, formatRangeVnd, currency, toggleCurrency, filterPhase, filteredPhases }
   }
 })
 </script>

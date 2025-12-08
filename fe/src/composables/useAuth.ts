@@ -17,25 +17,76 @@ export function useAuth() {
   }
 
   async function login(email: string, password: string) {
-    // Temporary: accept special admin/admin credential (no email required)
-    if (email === 'admin' && password === 'admin') {
-      const u: User = { email: 'admin', name: 'admin', token: 'admin-token' }
+    // Call backend auth endpoint. Fallback to a lightweight mock if backend unavailable.
+    try {
+      // If a reCAPTCHA site key is configured, attempt to execute and retrieve a token
+      let recaptchaToken: string | undefined = undefined
+      try {
+        const siteKey = (import.meta as any).env?.VITE_RECAPTCHA_SITEKEY
+        if (siteKey && (window as any).grecaptcha && typeof (window as any).grecaptcha.execute === 'function') {
+          recaptchaToken = await (window as any).grecaptcha.execute(siteKey, { action: 'login' })
+        }
+      } catch (e) {
+        // non-blocking
+      }
+      const bodyPayload: any = { email, password }
+      if (recaptchaToken) bodyPayload.recaptchaToken = recaptchaToken
+      const resp = await fetch('/api/auth/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(bodyPayload) })
+      if (!resp.ok) {
+        const txt = await resp.text().catch(() => '')
+        throw new Error('HTTP ' + resp.status + ' ' + txt)
+      }
+      const j = await resp.json()
+      const u: User = { email: j.user.email, name: j.user.email.split('@')[0], token: j.token }
+      // attach role if present
+      try { ;(u as any).role = j.user.role } catch (e) {}
       save(u)
+      // After login, attempt to migrate any session-based planned-visa to the user account
+      try {
+        const sessionId = localStorage.getItem('session_id') || undefined
+        const userId = u.email
+        await fetch('/api/planned-visa/migrate', { method: 'POST', headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + u.token }, body: JSON.stringify({ userId, sessionId }) })
+      } catch (e) {
+        // non-blocking
+      }
+      return u
+    } catch (err) {
+      // Fallback to previous local mock behaviors for development/offline use
+      if (email === 'admin' && password === 'admin') {
+        const u: User = { email: 'admin', name: 'admin', token: 'admin-token' }
+        ;(u as any).role = 'admin'
+        save(u)
+        return u
+      }
+      if (!email || !email.includes('@')) throw new Error('Email không hợp lệ')
+      if (!password || password.length < 6) throw new Error('Password phải >= 6 ký tự')
+      const u: User = { email, name: email.split('@')[0], token: 'mock-token-' + Date.now() }
+      save(u)
+      try {
+        const sessionId = localStorage.getItem('session_id') || undefined
+        const userId = u.email
+        await fetch('/api/planned-visa/migrate', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ userId, sessionId }) })
+      } catch (e) {}
       return u
     }
-
-    // Mock login: accept any email/password with basic validation.
-    if (!email || !email.includes('@')) throw new Error('Email không hợp lệ')
-    if (!password || password.length < 6) throw new Error('Password phải >= 6 ký tự')
-
-    // In a real app call the backend: await api.post('/auth/login', { email, password })
-    // Here we mock a token and user object
-    const u: User = { email, name: email.split('@')[0], token: 'mock-token-' + Date.now() }
-    save(u)
-    return u
   }
 
   function logout() {
+    // Capture stored user id before removing
+    let storedUserRaw: string | null = null
+    try { storedUserRaw = localStorage.getItem(STORAGE_KEY) } catch (e) {}
+    // Try to revoke token server-side if present
+    try {
+      if (storedUserRaw) {
+        const parsed = JSON.parse(storedUserRaw)
+        const token = parsed?.token
+        if (token) {
+          fetch('/api/auth/revoke', { method: 'POST', headers: { 'authorization': 'Bearer ' + token } }).catch(() => {})
+          // also delete planned-visa for user
+          fetch('/api/planned-visa', { method: 'DELETE', headers: { 'authorization': 'Bearer ' + token } }).catch(() => {})
+        }
+      }
+    } catch (e) {}
     save(null)
     // navigate to home after logout
     router.push('/')

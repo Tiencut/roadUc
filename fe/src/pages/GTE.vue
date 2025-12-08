@@ -22,6 +22,29 @@
     <div v-if="draft" class="mt-4">
       <h2 class="text-lg font-semibold">Bản nháp GTE (hãy chỉnh sửa trước khi dùng)</h2>
       <textarea class="mt-2 block w-full border rounded px-2 py-2" v-model="draft" rows="10"></textarea>
+      <div class="mt-4 bg-gray-50 p-3 rounded">
+        <h3 class="font-semibold">Mẫu dàn ý GTE</h3>
+        <ol class="list-decimal pl-5 text-sm mt-2">
+          <li>Giới thiệu bản thân và lý do chọn chương trình.</li>
+          <li>Trình bày liên hệ giữa kinh nghiệm/lý lịch học tập và chương trình chọn.</li>
+          <li>Giải thích mục tiêu nghề nghiệp sau khi hoàn thành (về VN hay Úc).</li>
+          <li>Chứng minh tài chính & ràng buộc ở Việt Nam (gia đình, hợp đồng lao động, tài sản).</li>
+          <li>Kết luận và cam kết tuân thủ quy định visa.</li>
+        </ol>
+        <h3 class="font-semibold mt-3">Chứng cứ thường dùng (checklist)</h3>
+        <ul class="list-disc pl-5 text-sm">
+          <li>Hợp đồng lao động / thư xác nhận công việc</li>
+          <li>Sao kê ngân hàng / giấy tờ sở hữu tài sản</li>
+          <li>Giấy đăng ký kinh doanh / sổ đỏ (nếu có)</li>
+          <li>Thư mời học / Offer letter</li>
+        </ul>
+        <h3 class="font-semibold mt-3">Lý do bị từ chối hay lỗi thường gặp</h3>
+        <ul class="list-disc pl-5 text-sm">
+          <li>GTE quá chung chung, không nêu ràng buộc tại Việt Nam.</li>
+          <li>Chứng minh tài chính thiếu minh bạch.</li>
+          <li>Tài liệu không hợp lệ hoặc không được công chứng đúng chuẩn.</li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>
