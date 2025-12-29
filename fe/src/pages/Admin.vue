@@ -121,6 +121,26 @@
           </div>
         </div>
       </div>
+      <!-- Subscriptions panel -->
+      <div class="mt-6">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="font-medium">Subscriptions</h3>
+          <button @click="loadSubscriptions" class="px-2 py-1 border rounded text-sm">Tải lại</button>
+        </div>
+        <div class="space-y-2">
+          <div v-if="subscriptions.length === 0" class="text-sm text-gray-600">Chưa có subscription nào hoặc chưa tải.</div>
+          <div v-for="s in subscriptions" :key="s.stripeSubscriptionId || s.id" class="p-2 border rounded flex items-center justify-between">
+            <div>
+              <div class="font-medium">{{ s.email }}</div>
+              <div class="text-xs text-gray-500">Customer: {{ s.stripeCustomerId || '-' }} — Subscription: {{ s.stripeSubscriptionId || '-' }}</div>
+              <div class="text-xs text-gray-500">Status: {{ s.subscriptionStatus || (s.premium ? 'active' : 'inactive') }}</div>
+            </div>
+            <div class="flex gap-2">
+              <button v-if="s.stripeSubscriptionId" @click="cancelSubscription(s.stripeSubscriptionId)" class="px-2 py-1 bg-red-600 text-white rounded text-sm">Hủy subscription</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div v-if="message" class="text-sm text-green-700 mt-4">{{ message }}</div>
       <div v-if="error" class="text-sm text-red-600 mt-4">{{ error }}</div>
@@ -215,6 +235,44 @@ export default defineComponent({
     }
 
     onMounted(() => { loadContent(); loadUsers() })
+
+    // Subscriptions
+    const subscriptions = ref<any[]>([])
+
+    async function loadSubscriptions() {
+      error.value = ''
+      message.value = ''
+      try {
+        const hdrs: any = { 'content-type': 'application/json' }
+        try { if (auth.user.value) hdrs['authorization'] = 'Bearer ' + auth.user.value.token } catch (e) {}
+        const resp = await fetch('/api/admin/subscriptions', { headers: hdrs })
+        if (!resp.ok) throw new Error('HTTP ' + resp.status)
+        const j = await resp.json()
+        subscriptions.value = j.data || []
+      } catch (e: any) {
+        error.value = String(e)
+      }
+    }
+
+    async function cancelSubscription(subscriptionId: string) {
+      try {
+        if (!confirm('Xác nhận hủy subscription ' + subscriptionId + ' ?')) return
+        const hdrs: any = { 'content-type': 'application/json' }
+        try { if (auth.user.value) hdrs['authorization'] = 'Bearer ' + auth.user.value.token } catch (e) {}
+        const resp = await fetch('/api/admin/subscriptions/' + encodeURIComponent(subscriptionId) + '/cancel', { method: 'POST', headers: hdrs })
+        if (!resp.ok) {
+          const txt = await resp.text().catch(() => '')
+          throw new Error('HTTP ' + resp.status + ' ' + txt)
+        }
+        message.value = 'Đã hủy subscription ' + subscriptionId
+        // refresh lists
+        await loadSubscriptions()
+        await loadUsers()
+      } catch (e: any) { error.value = String(e) }
+    }
+
+    // load subscriptions on mount
+    onMounted(() => { loadSubscriptions() })
 
     // Visas CRUD
     async function reloadVisas() { await loadContent() }
@@ -437,6 +495,8 @@ export default defineComponent({
 
     return { text, visas, newVisa, createVisa, updateVisa, deleteVisa, phases, addPhase, removePhase, addDetail, removeDetail, reloadVisas, reloadPhases, savePhases, message, error,
       users, newUser, newUserErrors, loadUsers, createUser, promptReset, resetPassword, deleteUser, changeRole, userQuery, page, pageSize, totalPages, usersForPage,
+      // subscriptions
+      subscriptions, loadSubscriptions, cancelSubscription,
       // modal helpers
       resetModalVisible, resetModalUser, resetModalNewPass, resetModalError, resetModalLoading, submitResetModal }
   }

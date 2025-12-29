@@ -1,0 +1,218 @@
+[{
+    "id": "before",
+    "title": "Trước khi đi Úc",
+    "desc": "Các bước chính trước khi xuất cảnh",
+    "note": "Độ tuổi 18-30, phí visa 650-670 AUD. Chuẩn bị 10-12 tháng. Tổng chi: 7.500-10.000 AUD.",
+    "steps": [{
+        "id": "ballot",
+        "index": 1,
+        "title": "Nộp Ballot & hồ sơ",
+        "desc": "Nộp Ballot (25 AUD), chờ lời mời rồi nộp hồ sơ đầy đủ (hộ chiếu, chứng minh tài chính ≥5,000-7,000 AUD, tiếng Anh B1+, sức khỏe, lý lịch tư pháp).",
+        "costAud": "7,157-8,716",
+        "details": [{
+            "label": "1",
+            "desc": "Nộp Ballot đăng ký tham gia xổ số visa 462 qua hệ thống ImmiAccount. Phí 25 AUD (~400,000 VND), không hoàn lại; thanh toán bằng thẻ Visa/MasterCard.",
+            "cost": "25"
+        }, {
+            "label": "1b",
+            "desc": "Lịch trình Ballot 2026: 14/6-4/7/2025 (giờ Sydney). Kiểm tra ImmiAccount hàng ngày; sai ID/CCCD 12 số bị loại.",
+            "cost": "0"
+        }, {
+            "label": "3a",
+            "desc": "Nộp hồ sơ đầy đủ (phí visa 650-670 AUD): Hộ chiếu; giấy tờ tùy thân; ảnh; đơn đăng ký; bản dịch công chứng.",
+            "cost": "650-670"
+        }, {
+            "label": "degree",
+            "desc": "Bằng cấp học vấn: Bằng ĐH (hoặc xác nhận năm 2 ĐH/cao đẳng 2 năm); scan màu (không công chứng). Thiếu → loại ngay.",
+            "cost": "0"
+        }, {
+            "label": "3b",
+            "desc": "Chứng minh tài chính ≥5,000-7,000 AUD (bank statement 3 tháng gần nhất).",
+            "cost": "≥5,000-7,000"
+        }, {
+            "label": "3c",
+            "desc": "Chứng chỉ tiếng Anh (PTE 24+ tương đương B1+) — 4-10 triệu VND.",
+            "cost": "242-606"
+        }, {
+            "label": "health",
+            "desc": "Khám sức khỏe (X-quang, xét nghiệm) tại bệnh viện chỉ định — 2.3-4.7 triệu VND.",
+            "cost": "140-285"
+        }, {
+            "label": "biometric",
+            "desc": "Dấu vân tay & sinh trắc học (VFS Global Hà Nội/TP.HCM).",
+            "cost": "90"
+        }, {
+            "label": "personal",
+            "desc": "Giấy tờ cá nhân: giấy khai sinh, CCCD, ảnh 4x6 ≤6 tháng; photo/công chứng bổ sung.",
+            "cost": "32-80"
+        }, {
+            "label": "police",
+            "desc": "Lý lịch tư pháp (Police check) nếu yêu cầu bổ sung.",
+            "cost": "0-50"
+        }]
+    }, {
+        "id": "travel",
+        "index": 2,
+        "title": "Chuẩn bị đi lại & hồ sơ",
+        "desc": "Mua vé, bảo hiểm du lịch, chuẩn bị CV tiếng Anh.",
+        "costAud": "1,335-2,659",
+        "details": [{
+            "label": "Vé 1 chiều",
+            "desc": "Vé 1 chiều khuyến mãi từ VN (rẻ hơn khứ hồi).",
+            "cost": "485-909"
+        }, {
+            "label": "Vé khứ hồi",
+            "desc": "Tùy mùa, hãng (nếu cần chứng minh quay về).",
+            "cost": "800-1,500"
+        }, {
+            "label": "Bảo hiểm du lịch",
+            "desc": "Bảo hiểm toàn diện 6-12 tháng (bắt buộc một số trường hợp).",
+            "cost": "50-200"
+        }, {
+            "label": "CV tiếng Anh",
+            "desc": "Dịch/viết CV chuẩn Úc (1-2 trang, ATS format).",
+            "cost": "0-50"
+        }]
+    }, {
+        "id": "study",
+        "index": 3,
+        "title": "Học & tích lũy kinh nghiệm",
+        "desc": "Học PTE nếu cần, kinh nghiệm farm/hotel/nông nghiệp để tăng điểm.",
+        "costAud": "0-500",
+        "details": [{
+            "label": "Khóa PTE/tiếng Anh",
+            "desc": "Nếu chưa đạt PTE 24+.",
+            "cost": "0-500"
+        }, {
+            "label": "Kinh nghiệm nghề",
+            "desc": "Làm farm/dịch vụ tại VN (không chi phí).",
+            "cost": "0"
+        }]
+    }]
+}, {
+    "id": "during",
+    "title": "Khi đang ở Úc",
+    "desc": "Các bước chính khi đã có mặt ở Úc",
+    "note": "Ở hostel đầu tiên, kết nối backpacker. Thu nhập farm ~100-200 AUD/ngày. Chi 1-2 tháng đầu: 1.500-3.000 AUD.",
+    "steps": [{
+        "id": "setup",
+        "index": 4,
+        "title": "Thiết lập đời sống",
+        "desc": "Mua SIM, mở tài khoản ngân hàng, xin TFN/ABN.",
+        "costAud": "510-1,040",
+        "details": [{
+            "label": "SIM & data",
+            "desc": "SIM 4G/5G + data 1 tháng đầu (Optus/Vodafone).",
+            "cost": "10-30"
+        }, {
+            "label": "Mở tài khoản ngân hàng",
+            "desc": "Commonwealth/ANZ (miễn phí cơ bản).",
+            "cost": "0-10"
+        }, {
+            "label": "TFN",
+            "desc": "Tax File Number (online miễn phí).",
+            "cost": "0"
+        }, {
+            "label": "ABN",
+            "desc": "Australian Business Number (freelance/farm, online).",
+            "cost": "0"
+        }, {
+            "label": "Hostel + ăn đầu",
+            "desc": "Ở backpacker + thực phẩm 1-2 tuần (trước lương).",
+            "cost": "500-1,000"
+        }]
+    }, {
+        "id": "work",
+        "index": 5,
+        "title": "Tìm việc & làm việc",
+        "desc": "Tìm farm/khách sạn qua Seek/Indeed/Gumtree (≤6 tháng/nhà tuyển dụng).",
+        "costAud": "100-400",
+        "details": [{
+            "label": "Ứng tuyển",
+            "desc": "In CV, di chuyển phỏng vấn.",
+            "cost": "0-50"
+        }, {
+            "label": "Quần áo bảo hộ farm",
+            "desc": "Giày, quần áo, mũ cho packing/farm.",
+            "cost": "100-300"
+        }, {
+            "label": "Di chuyển ban đầu",
+            "desc": "Bus/taxi đến farm.",
+            "cost": "0-50"
+        }]
+    }, {
+        "id": "training",
+        "index": 6,
+        "title": "Du lịch & học ngắn hạn",
+        "desc": "Du lịch regional, học RSA/FoodSafety để gia hạn visa năm 2/3.",
+        "costAud": "350-1,100",
+        "details": [{
+            "label": "RSA/FoodSafety",
+            "desc": "Chứng chỉ phục vụ rượu/an toàn thực phẩm (online/in-person).",
+            "cost": "50-200"
+        }, {
+            "label": "Vé bus nội địa",
+            "desc": "Greyhound/Bluestone giữa các vùng farm.",
+            "cost": "200-500"
+        }, {
+            "label": "Du lịch regional",
+            "desc": "Ăn ở + khám phá (88 ngày specified work).",
+            "cost": "100-400"
+        }]
+    }]
+}, {
+    "id": "after",
+    "title": "Sau khi về",
+    "desc": "Các bước thực hiện sau khi kết thúc hành trình",
+    "note": "Claim thuế trước rút Super. Tổng chi: 0-350 AUD. Kinh nghiệm Úc tăng cơ hội visa khác.",
+    "steps": [{
+        "id": "super",
+        "index": 7,
+        "title": "Rút Superannuation & Claim thuế",
+        "desc": "Rút quỹ hưu trí sau khi về VN (khoảng 1.000-5.000 AUD tùy làm).",
+        "costAud": "0-300",
+        "details": [{
+            "label": "Claim thuế",
+            "desc": "Khai thuế cuối năm tài chính (7/7) trước rút Super (15-32.5% khấu trừ).",
+            "cost": "0-100"
+        }, {
+            "label": "Phí rút Super",
+            "desc": "Phí ngân hàng/dịch vụ xử lý.",
+            "cost": "0-50"
+        }, {
+            "label": "Thuế khấu trừ",
+            "desc": "Tùy thu nhập (Medicare levy 2%).",
+            "cost": "0-150"
+        }]
+    }, {
+        "id": "cv",
+        "index": 8,
+        "title": "Cập nhật CV & tận dụng kinh nghiệm",
+        "desc": "Cập nhật kinh nghiệm Úc cho CV/LinkedIn, xin việc VN hoặc visa 482/491.",
+        "costAud": "0-100",
+        "details": [{
+            "label": "Dịch vụ CV/LinkedIn",
+            "desc": "Chỉnh CV chuyên nghiệp.",
+            "cost": "0-50"
+        }, {
+            "label": "In ấn/dịch thuật",
+            "desc": "Hồ sơ xin việc mới.",
+            "cost": "0-50"
+        }]
+    }, {
+        "id": "evaluate",
+        "index": 9,
+        "title": "Đánh giá hướng đi",
+        "desc": "Đánh giá tài chính/kỹ năng để quay lại Úc hoặc định cư.",
+        "costAud": "0-200",
+        "details": [{
+            "label": "Tư vấn visa/nghề",
+            "desc": "Tư vấn chuyên sâu.",
+            "cost": "0-100"
+        }, {
+            "label": "Chi phí khác",
+            "desc": "Hồ sơ bổ sung.",
+            "cost": "0-100"
+        }]
+    }]
+}]

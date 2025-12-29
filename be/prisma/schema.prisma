@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -22,4 +22,71 @@ model Assessment {
   score     Int
   result    String
   createdAt DateTime @default(now())
+}
+
+model User {
+  id                  String   @id @default(uuid())
+  email               String   @unique
+  passwordHash        String?
+  role                String   @default("user")
+  premium             Boolean  @default(false)
+  stripeCustomerId    String?  @db.Text
+  stripeSubscriptionId String? @db.Text
+  subscriptionStatus  String?  @db.Text
+  createdAt           DateTime @default(now())
+}
+
+model PlannedVisa {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  data      Json
+  savedAt   DateTime @default(now())
+}
+
+model SavedJob {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  jobType   String
+  payload   Json
+}
+
+model CMSContent {
+  id        Int      @id @default(autoincrement())
+  content   Json
+  updatedAt DateTime @updatedAt
+}
+
+model RevokedToken {
+  id    Int    @id @default(autoincrement())
+  token String @unique
+  createdAt DateTime @default(now())
+}
+
+model MigrationPlan {
+  id            Int      @id @default(autoincrement())
+  key           String   @unique
+  userId        String?  @db.Text
+  answers       Json
+  generatedSteps Json
+  status        String   @default("draft")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Template {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  fields      Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model GeneratedExport {
+  id         Int      @id @default(autoincrement())
+  planId     Int?
+  templateId Int?
+  filename   String
+  filePath   String
+  createdAt  DateTime @default(now())
 }

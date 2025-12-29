@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-type User = { email: string; name?: string; token?: string }
+type User = { email: string; name?: string; token?: string; role?: string; premium?: boolean }
 
 const STORAGE_KEY = 'rtu_user'
 
@@ -37,9 +37,7 @@ export function useAuth() {
         throw new Error('HTTP ' + resp.status + ' ' + txt)
       }
       const j = await resp.json()
-      const u: User = { email: j.user.email, name: j.user.email.split('@')[0], token: j.token }
-      // attach role if present
-      try { ;(u as any).role = j.user.role } catch (e) {}
+      const u: User = { email: j.user.email, name: j.user.email.split('@')[0], token: j.token, role: j.user?.role, premium: !!j.user?.premium }
       save(u)
       // After login, attempt to migrate any session-based planned-visa to the user account
       try {
@@ -96,5 +94,22 @@ export function useAuth() {
     return !!user.value
   }
 
-  return { user, login, logout, isAuthenticated }
+  async function refresh() {
+    try {
+      const token = user.value?.token
+      if (!token) return null
+      const resp = await fetch('/api/auth/me', { headers: { authorization: 'Bearer ' + token } })
+      if (!resp.ok) return null
+      const j = await resp.json()
+      const u: User = { email: j.user.email, name: j.user.email.split('@')[0], token, role: j.user?.role, premium: !!j.user?.premium }
+      save(u)
+      return u
+    } catch (e) {
+      return null
+    }
+  }
+
+  return { user, login, logout, isAuthenticated, refresh }
 }
+
+export type { User }

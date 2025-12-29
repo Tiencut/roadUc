@@ -3,7 +3,7 @@
     <h1 class="text-2xl font-bold mb-4">Khảo sát khả năng đi Úc</h1>
 
     <div class="bg-white p-4 border rounded">
-      <p class="text-sm text-gray-600 mb-4">Nhập thông tin ở cột trái; bảng hiển thị Điều kiện cần đạt theo loại visa và trạng thái ĐỦ/CHƯA ĐỦ.</p>
+      <p class="text-sm text-gray-600 mb-4">Nhập thông tin ở cột trái; bảng hiển thị điều kiện cần đạt theo loại visa và trạng thái ĐỦ/CHƯA ĐỦ. Lưu ý: nhập điểm tiếng Anh (PTE/IELTS/TOEFL) và các số tiền bằng số (AUD hoặc VND).</p>
 
       <div class="overflow-x-auto">
         <table class="w-full table-auto text-sm border-collapse">
@@ -21,7 +21,7 @@
               <td class="p-2">
                 <div>
                   <template v-if="m.criteria === 'Tuổi'">
-                    <input type="number" v-model.number="age" class="w-24 border rounded px-2 py-1" />
+                    <input type="number" min="0" max="120" step="1" v-model.number="age" class="w-24 border rounded px-2 py-1" />
                   </template>
                   <template v-else-if="m.criteria === 'Học vấn'">
                     <select v-model="education" class="border rounded px-2 py-1">
@@ -30,17 +30,27 @@
                       <option value="master">Thạc sĩ+</option>
                     </select>
                   </template>
-                  <template v-else-if="m.criteria === 'IELTS'">
-                    <input type="number" step="0.5" v-model.number="ielts" class="w-24 border rounded px-2 py-1" />
+                  <template v-else-if="m.criteria === 'Tiếng Anh (PTE/IELTS)'">
+                    <div class="flex items-center gap-2">
+                      <select v-model="englishTest" class="border rounded px-2 py-1 text-sm">
+                        <option value="pte">PTE</option>
+                        <option value="ielts">IELTS</option>
+                        <option value="toefl">TOEFL</option>
+                        <option value="other">Khác</option>
+                      </select>
+                      <input type="number" step="0.1" min="0" v-model.number="englishScore" class="w-28 border rounded px-2 py-1" placeholder="Điểm" />
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">Lưu ý: Điểm PTE được chuyển sang IELTS-equivalent để so sánh (ví dụ PTE 65 ~ IELTS 6.5).</div>
                   </template>
-                  <template v-else-if="m.criteria === 'Funds (AUD)'">
+                  <template v-else-if="m.criteria === 'Quỹ (AUD)'">
                     <div class="flex flex-col gap-2">
-                      <input type="number" v-model.number="funds" class="w-full border rounded px-2 py-1" placeholder="AUD" />
+                      <input type="number" min="0" v-model.number="funds" class="w-full border rounded px-2 py-1" placeholder="AUD" />
                       <input type="text" v-model="fundsVndDisplay" @input="onFundsVndInput" class="w-full border rounded px-2 py-1" placeholder="VND (nhập số, tự format)" />
                     </div>
                   </template>
-                  <template v-else-if="m.criteria === 'Kinh nghiệm (năm)'">
-                    <input type="number" v-model.number="experience" class="w-24 border rounded px-2 py-1" />
+                  <template v-else-if="m.criteria === 'Kinh nghiệm làm việc (năm - nghề liên quan)'">
+                    <input type="number" min="0" v-model.number="experience" class="w-24 border rounded px-2 py-1" />
+                    <div class="text-xs text-gray-500 mt-1">Ghi chú: nhập số năm kinh nghiệm liên quan trực tiếp tới nghề tuyển (ví dụ: 2 năm làm developer nếu nộp hồ sơ ngành IT).</div>
                   </template>
                   <template v-else>
                     {{ m.valueDisplay }}
@@ -49,7 +59,7 @@
               </td>
               <td class="p-2">
                 <div>{{ m.requiredText }}</div>
-                <div v-if="m.criteria === 'Funds (AUD)'" class="text-xs text-gray-600 mt-1">
+                <div v-if="m.criteria === 'Quỹ (AUD)' || m.criteria === 'Funds (AUD)'" class="text-xs text-gray-600 mt-1">
                   Visa ước tính: <strong>{{ requiredAud }} AUD</strong>
                   <span v-if="formattedRequiredVnd">(~ {{ formattedRequiredVnd }})</span>
                 </div>
@@ -60,11 +70,19 @@
         </table>
       </div>
 
-      <div class="mt-4 flex items-center gap-3">
-        <button @click="evaluate" class="bg-blue-600 text-white px-4 py-2 rounded">Đánh giá</button>
-        <button @click="reset" class="px-3 py-2 border rounded text-sm">Reset</button>
-        <div class="ml-auto text-sm">
-          Kết quả: <strong class="ml-2">{{ result.level }}</strong>
+      <div class="mt-4">
+        <div v-if="validationErrors.length" class="mb-3 text-sm text-red-600">
+          <div class="font-semibold">Lỗi nhập liệu</div>
+          <ul class="list-disc pl-5">
+            <li v-for="(e, i) in validationErrors" :key="i">{{ e }}</li>
+          </ul>
+        </div>
+        <div class="flex items-center gap-3">
+          <button @click="evaluate" :disabled="validationErrors.length" class="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50">Đánh giá</button>
+          <button @click="reset" class="px-3 py-2 border rounded text-sm">Reset</button>
+          <div class="ml-auto text-sm">
+            Kết quả: <strong class="ml-2">{{ result.level }}</strong>
+          </div>
         </div>
       </div>
 
@@ -138,7 +156,8 @@ export default defineComponent({
     try {
       const age = ref<number | null>(null)
       const education = ref('bachelor')
-      const ielts = ref<number | null>(null)
+      const englishTest = ref<'pte'|'ielts'|'toefl'|'other'>('pte')
+      const englishScore = ref<number | null>(null)
       const funds = ref<number | null>(null)
       const fundsVndDisplay = ref<string>('')
       const fundsVndNumeric = ref<number | null>(null)
@@ -146,15 +165,36 @@ export default defineComponent({
       const experience = ref<number | null>(0)
 
       const thresholds = {
-        high: { age: 35, edu: 3, ielts: 6.5, funds: 20000, exp: 3 },
-        medium: { age: 45, edu: 2, ielts: 6.0, funds: 10000, exp: 1 },
-        low: { age: 200, edu: 1, ielts: 5.0, funds: 0, exp: 0 }
+        high: { age: 35, edu: 3, english: 6.5, funds: 20000, exp: 3 },
+        medium: { age: 45, edu: 2, english: 6.0, funds: 10000, exp: 1 },
+        low: { age: 200, edu: 1, english: 5.0, funds: 0, exp: 0 }
+      }
+
+      // helper to convert PTE/TOEFL to an approximate IELTS-equivalent (tái sử dụng)
+      function convertToIelts(score: number | null, test: string | undefined) {
+        if (!score || score <= 0) return 0
+        const s = Number(score)
+        if (test === 'pte') {
+          if (s >= 79) return 8
+          if (s >= 65) return 6.5
+          if (s >= 50) return 5
+          return 4
+        }
+        if (test === 'toefl') {
+          if (s >= 110) return 8
+          if (s >= 95) return 7
+          if (s >= 80) return 6
+          return 4
+        }
+        // assume IELTS if not matched
+        return s
       }
 
       function meetsThresholds() {
         const vAge = (age.value ?? 999)
         const vEdu = eduRank(education.value)
-        const vIelts = (ielts.value ?? 0)
+        const vEnglish = convertToIelts(englishScore.value ?? null, englishTest.value)
+
         // derive funds in AUD: prefer `funds` (AUD); if only VND provided, convert using fetched rate
         let vFunds = 0
         if (typeof funds.value === 'number' && !Number.isNaN(funds.value)) vFunds = funds.value
@@ -177,17 +217,17 @@ export default defineComponent({
             meets: vEdu >= thresholds.medium.edu
           },
           {
-            criteria: 'IELTS', valueDisplay: ielts.value ?? '-',
-            requiredText: `≥ ${thresholds.medium.ielts}`,
-            meets: vIelts >= thresholds.medium.ielts
+            criteria: 'Tiếng Anh (PTE/IELTS)', valueDisplay: englishScore.value ? `${englishScore.value} (${englishTest.value.toUpperCase()})` : '-',
+            requiredText: `≥ ${thresholds.medium.english} (IELTS-equivalent)` ,
+            meets: vEnglish >= thresholds.medium.english
           },
           {
-            criteria: 'Funds (AUD)', valueDisplay: (funds.value ?? (fundsVndDisplay.value ? `${fundsVndDisplay.value} VND` : '-')),
+            criteria: 'Quỹ (AUD)', valueDisplay: (funds.value ?? (fundsVndDisplay.value ? `${fundsVndDisplay.value} VND` : '-')),
             requiredText: `≥ ${thresholds.medium.funds} AUD${audToVnd.value ? ` (~ ${formatDigitsWithCommas(String(Math.round(thresholds.medium.funds * audToVnd.value)))} VND)` : ''}`,
             meets: vFunds >= thresholds.medium.funds
           },
           {
-            criteria: 'Kinh nghiệm (năm)', valueDisplay: experience.value ?? '-',
+            criteria: 'Kinh nghiệm làm việc (năm - nghề liên quan)', valueDisplay: experience.value ?? '-',
             requiredText: `≥ ${thresholds.medium.exp}`,
             meets: vExp >= thresholds.medium.exp
           }
@@ -198,7 +238,22 @@ export default defineComponent({
 
       const result = ref({ level: 'Chưa đánh giá', score: { highCount: 0, medCount: 0 } as any })
 
+      const validationErrors = computed(() => {
+        const errs: string[] = []
+        if (age.value !== null && (!Number.isInteger(age.value) || age.value < 0 || age.value > 120)) errs.push('Tuổi phải là số nguyên hợp lệ (0–120).')
+        if (englishScore.value !== null && englishScore.value < 0) errs.push('Điểm tiếng Anh không được âm.')
+        if (funds.value !== null && funds.value < 0) errs.push('Quỹ không được âm.')
+        if (experience.value !== null && (experience.value < 0 || !Number.isFinite(experience.value))) errs.push('Kinh nghiệm phải là số không âm (năm).')
+        return errs
+      })
+
       function evaluate() {
+        if (validationErrors.value.length) {
+          // show small toast-like error (keep simple: browser alert)
+          alert('Có lỗi nhập liệu:\n' + validationErrors.value.join('\n'))
+          return
+        }
+
         // Binary-style scoring: count how many criteria meet the medium threshold
         const m = matches.value
         let meetCount = 0
@@ -212,7 +267,10 @@ export default defineComponent({
           const snapshot = {
             age: age.value,
             education: education.value,
-            ielts: ielts.value,
+            englishTest: englishTest.value,
+            englishScore: englishScore.value,
+            // store an IELTS-equivalent for compatibility with existing code
+            ielts: convertToIelts(englishScore.value ?? null, englishTest.value),
             funds: funds.value,
             experience: experience.value,
             result: result.value
@@ -224,7 +282,7 @@ export default defineComponent({
       }
 
       function reset() {
-        age.value = null; education.value = 'bachelor'; ielts.value = null; funds.value = null; experience.value = 0
+        age.value = null; education.value = 'bachelor'; englishTest.value = 'pte'; englishScore.value = null; funds.value = null; experience.value = 0
         result.value = { level: 'Chưa đánh giá', score: 0 }
         try { localStorage.removeItem('latest_assessment') } catch (e) {}
       }
@@ -346,32 +404,44 @@ export default defineComponent({
       // Recommendation engine: simple rule-based suggestions with short reasons
       const recommendedVisas = computed(() => {
         const out: Array<{ key: string; label: string; reason: string }> = []
-        const lvl = result.value.level
-        const vIelts = (ielts.value ?? 0)
         const vEdu = eduRank(education.value)
         const vExp = (experience.value ?? 0)
         const vAge = (age.value ?? 100)
-        // derive funds in AUD: prefer `funds` (AUD); if only VND provided, convert using fetched rate
-        let vFunds = 0
-        if (typeof funds.value === 'number' && !Number.isNaN(funds.value)) vFunds = funds.value
-        else if (typeof fundsVndNumeric.value === 'number' && audToVnd.value && audToVnd.value > 0) {
-          vFunds = Math.round(fundsVndNumeric.value / audToVnd.value)
-        } else {
-          vFunds = 0
+        // compute funds and english score equivalents locally
+        const vFunds = (typeof funds.value === 'number' && !Number.isNaN(funds.value)) ? funds.value : ((typeof fundsVndNumeric.value === 'number' && audToVnd.value && audToVnd.value > 0) ? Math.round(fundsVndNumeric.value / audToVnd.value) : 0)
+        // inline conversion to avoid external dependency at render time
+        function toIeltsLocal(score: number | null, test: string | undefined) {
+          if (!score || score <= 0) return 0
+          const s = Number(score)
+          if (test === 'pte') {
+            if (s >= 79) return 8
+            if (s >= 65) return 6.5
+            if (s >= 50) return 5
+            return 4
+          }
+          if (test === 'toefl') {
+            if (s >= 110) return 8
+            if (s >= 95) return 7
+            if (s >= 80) return 6
+            return 4
+          }
+          return s
         }
+        const vEnglish = toIeltsLocal(englishScore.value ?? null, englishTest.value)
+        const lvl = (result.value && typeof result.value.level === 'string') ? result.value.level : 'Chưa đánh giá'
 
         if (lvl === 'Cao') {
-          if (vIelts >= 6.5 && vEdu >= 2 && vExp >= 1) {
-            out.push({ key: 'skilled', label: 'Skilled / PR', reason: 'IELTS cao, trình độ và kinh nghiệm phù hợp — đường lao động/định cư' })
+          if (vEnglish >= 6.5 && vEdu >= 2 && vExp >= 1) {
+            out.push({ key: 'skilled', label: 'Skilled / PR', reason: 'Tiếng Anh cao (PTE/IELTS tương đương), trình độ và kinh nghiệm phù hợp — đường lao động/định cư' })
           } else {
             out.push({ key: 'student', label: 'Student (Học tập)', reason: 'Điểm tổng cao nhưng cần cải thiện một vài tiêu chí; học tập có thể là lộ trình' })
           }
         } else if (lvl === 'Trung bình') {
           // Medium: either student route or skilled with improvement
-          if (vFunds >= 10000 && vIelts >= 6.0) {
+          if (vFunds >= 10000 && vEnglish >= 6.0) {
             out.push({ key: 'student', label: 'Student (Học tập)', reason: 'Quỹ và tiếng Anh đủ cho học tập; có thể dùng học để cải thiện điểm' })
           }
-          if (vIelts >= 6.0 && vEdu >= 2) {
+          if (vEnglish >= 6.0 && vEdu >= 2) {
             out.push({ key: 'skilled', label: 'Skilled (cần cải thiện)', reason: 'Cơ bản phù hợp cho lộ trình lao động nếu nâng nhẹ trình độ/kinh nghiệm' })
           }
           if (out.length === 0) {
@@ -394,7 +464,7 @@ export default defineComponent({
       })
         const getVisaDef = (k: string) => (visaDefinitions as any)[k]
 
-        return { age, education, ielts, funds, fundsVndDisplay, onFundsVndInput, experience, thresholds, matches, evaluate, reset, result, visaType, targetCurrency, converted, requiredAud, requiredVnd, formattedRequiredVnd, convertRequired, visaDefinitions, recommendedVisas, getVisaDef }
+        return { age, education, englishTest, englishScore, funds, fundsVndDisplay, onFundsVndInput, experience, thresholds, matches, validationErrors, evaluate, reset, result, visaType, targetCurrency, converted, requiredAud, requiredVnd, formattedRequiredVnd, convertRequired, visaDefinitions, recommendedVisas, getVisaDef }
     } catch (e: any) {
       console.error('Assessment setup error', e)
       runtimeError.value = e && e.message ? e.message : String(e)
@@ -404,17 +474,20 @@ export default defineComponent({
         runtimeError,
         age: safeRef(null),
         education: safeRef('bachelor'),
+        englishTest: safeRef('pte'),
+        englishScore: safeRef(null),
         ielts: safeRef(null),
         funds: safeRef(null),
         fundsVndDisplay: safeRef(''),
         onFundsVndInput: () => {},
         experience: safeRef(0),
         thresholds: {
-          high: { age: 35, edu: 3, ielts: 6.5, funds: 20000, exp: 3 },
-          medium: { age: 45, edu: 2, ielts: 6.0, funds: 10000, exp: 1 },
-          low: { age: 200, edu: 1, ielts: 5.0, funds: 0, exp: 0 }
+          high: { age: 35, edu: 3, english: 6.5, funds: 20000, exp: 3 },
+          medium: { age: 45, edu: 2, english: 6.0, funds: 10000, exp: 1 },
+          low: { age: 200, edu: 1, english: 5.0, funds: 0, exp: 0 }
         },
         matches: computed(() => []),
+        recommendedVisas: computed(() => []),
         evaluate: () => {},
         reset: () => {},
         result: safeRef({ level: 'Chưa đánh giá', score: {} }),

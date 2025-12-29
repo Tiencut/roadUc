@@ -1,0 +1,10 @@
+{
+  "users": [
+    {
+      "id": "u_mix4p6lj",
+      "email": "admin",
+      "passwordHash": "$2b$10$04AOAc1Hayr.8KDlRiRbP.mO4aMlORLWTR2LEewcJD6qsyeZ1hj/u",
+      "role": "admin"
+    }
+  ]
+}

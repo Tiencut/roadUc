@@ -1,8 +1,15 @@
 import fs from 'fs'
 import path from 'path'
+import { PrismaClient } from '@prisma/client'
 
 const DATA_DIR = path.join(process.cwd(), 'data')
 const DATA_FILE = path.join(DATA_DIR, 'db.json')
+
+const USING_PRISMA = !!process.env.DATABASE_URL
+let prisma: any = null
+if (USING_PRISMA) {
+  prisma = new PrismaClient()
+}
 
 function ensureData() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true })
@@ -20,7 +27,7 @@ function readDB() {
     if (!parsed.savedJobs) parsed.savedJobs = {}
     return parsed
   } catch (e) {
-    const init = { checklist: [], assessments: [], plannedVisas: {}, _nextId: 1 }
+    const init: any = { checklist: [], assessments: [], plannedVisas: {}, _nextId: 1 }
     init.revokedTokens = []
     init.savedJobs = {}
     fs.writeFileSync(DATA_FILE, JSON.stringify(init, null, 2), 'utf-8')
@@ -33,11 +40,13 @@ function writeDB(obj: any) {
 }
 
 export function getChecklist() {
+  if (USING_PRISMA) return prisma.checklistItem.findMany()
   const db = readDB()
   return db.checklist
 }
 
 export function createChecklist(text: string, done = false) {
+  if (USING_PRISMA) return prisma.checklistItem.create({ data: { text: String(text), done: !!done } })
   const db = readDB()
   const id = db._nextId++
   const item = { id, text, done: !!done, createdAt: new Date().toISOString() }
@@ -47,6 +56,7 @@ export function createChecklist(text: string, done = false) {
 }
 
 export function updateChecklist(id: number, data: { text?: string; done?: boolean }) {
+  if (USING_PRISMA) return prisma.checklistItem.update({ where: { id: Number(id) }, data: { text: data.text, done: data.done } })
   const db = readDB()
   const idx = db.checklist.findIndex((i: any) => i.id === id)
   if (idx === -1) return null
@@ -59,6 +69,7 @@ export function updateChecklist(id: number, data: { text?: string; done?: boolea
 }
 
 export function deleteChecklist(id: number) {
+  if (USING_PRISMA) return prisma.checklistItem.delete({ where: { id: Number(id) } })
   const db = readDB()
   db.checklist = db.checklist.filter((i: any) => i.id !== id)
   writeDB(db)
@@ -66,6 +77,7 @@ export function deleteChecklist(id: number) {
 }
 
 export function createAssessment(a: { age?: number; education?: string; ielts?: number; score: number; result: string }) {
+  if (USING_PRISMA) return prisma.assessment.create({ data: { age: a.age ?? null, education: a.education ?? null, ielts: a.ielts ?? null, score: a.score, result: a.result } })
   const db = readDB()
   const id = db._nextId++
   const row = { id, age: a.age ?? null, education: a.education ?? null, ielts: a.ielts ?? null, score: a.score, result: a.result, createdAt: new Date().toISOString() }
@@ -80,6 +92,7 @@ function keyFor(sessionId: string | undefined, userId?: string) {
 }
 
 export function getPlannedVisa(sessionId = 'global', userId?: string) {
+  if (USING_PRISMA) return prisma.plannedVisa.findUnique({ where: { key: keyFor(sessionId, userId) } })
   const db = readDB()
   // migrate older single plannedVisa shape if present
   if ((db as any).plannedVisa && !(db.plannedVisas && Object.keys(db.plannedVisas).length)) {
@@ -92,6 +105,7 @@ export function getPlannedVisa(sessionId = 'global', userId?: string) {
 }
 
 export function setPlannedVisa(sessionId: string, v: any, userId?: string) {
+  if (USING_PRISMA) return prisma.plannedVisa.upsert({ where: { key: keyFor(sessionId, userId) }, update: { data: v, savedAt: new Date() }, create: { key: keyFor(sessionId, userId), data: v } })
   const db = readDB()
   db.plannedVisas = db.plannedVisas || {}
   const key = keyFor(sessionId, userId)
@@ -101,6 +115,7 @@ export function setPlannedVisa(sessionId: string, v: any, userId?: string) {
 }
 
 export function clearPlannedVisa(sessionId = 'global', userId?: string) {
+  if (USING_PRISMA) return prisma.plannedVisa.deleteMany({ where: { key: keyFor(sessionId, userId) } })
   const db = readDB()
   if (!db.plannedVisas) return { ok: true }
   const key = keyFor(sessionId, userId)
@@ -110,6 +125,17 @@ export function clearPlannedVisa(sessionId = 'global', userId?: string) {
 }
 
 export function migratePlannedVisa(sessionId: string, userId: string) {
+  if (USING_PRISMA) {
+    const fromKey = keyFor(sessionId, undefined)
+    const toKey = keyFor(undefined, userId)
+    return (async () => {
+      const from = await prisma.plannedVisa.findUnique({ where: { key: fromKey } })
+      if (!from) return { ok: true, migrated: false }
+      await prisma.plannedVisa.delete({ where: { key: fromKey } })
+      const created = await prisma.plannedVisa.create({ data: { key: toKey, data: from.data } })
+      return { ok: true, migrated: true, data: created }
+    })()
+  }
   const db = readDB()
   if (!db.plannedVisas) return { ok: true }
   const from = keyFor(sessionId, undefined)
@@ -124,12 +150,25 @@ export function migratePlannedVisa(sessionId: string, userId: string) {
 
 // --- Saved jobs per user ---
 export function getSavedJobsForUser(userId: string) {
+  if (USING_PRISMA) return prisma.savedJob.findMany({ where: { userId } })
   const db = readDB()
   db.savedJobs = db.savedJobs || {}
   return db.savedJobs[userId] || []
 }
 
 export function setSavedJobsForUser(userId: string, jobs: any[]) {
+  if (USING_PRISMA) {
+    // replace existing saved jobs for user
+    return (async () => {
+      await prisma.savedJob.deleteMany({ where: { userId } })
+      const created = []
+      for (const j of (jobs || [])) {
+        const c = await prisma.savedJob.create({ data: { userId, jobType: j.jobType || '', payload: j } })
+        created.push(c)
+      }
+      return created
+    })()
+  }
   const db = readDB()
   db.savedJobs = db.savedJobs || {}
   db.savedJobs[userId] = jobs || []
@@ -138,6 +177,7 @@ export function setSavedJobsForUser(userId: string, jobs: any[]) {
 }
 
 export function addSavedJobForUser(userId: string, job: any) {
+  if (USING_PRISMA) return prisma.savedJob.create({ data: { userId, jobType: job.jobType || '', payload: job } })
   const db = readDB()
   db.savedJobs = db.savedJobs || {}
   const list = db.savedJobs[userId] || []
@@ -149,6 +189,7 @@ export function addSavedJobForUser(userId: string, job: any) {
 }
 
 export function removeSavedJobForUser(userId: string, jobType: string) {
+  if (USING_PRISMA) return prisma.savedJob.deleteMany({ where: { userId, jobType } })
   const db = readDB()
   db.savedJobs = db.savedJobs || {}
   const list = db.savedJobs[userId] || []
@@ -159,6 +200,7 @@ export function removeSavedJobForUser(userId: string, jobType: string) {
 
 // Token revocation (simple blacklist stored in db.json)
 export function addRevokedToken(token: string) {
+  if (USING_PRISMA) return prisma.revokedToken.create({ data: { token } })
   const db = readDB()
   db.revokedTokens = db.revokedTokens || []
   if (!db.revokedTokens.includes(token)) db.revokedTokens.push(token)
@@ -167,6 +209,7 @@ export function addRevokedToken(token: string) {
 }
 
 export function isTokenRevoked(token: string) {
+  if (USING_PRISMA) return prisma.revokedToken.findUnique({ where: { token } }).then((r: any) => !!r)
   const db = readDB()
   db.revokedTokens = db.revokedTokens || []
   return db.revokedTokens.includes(token)
@@ -273,6 +316,122 @@ export function deleteUserById(id: string) {
   return { ok: true }
 }
 
-export default null
+export function setUserPremium(id: string, premium: boolean) {
+  const u = readUsers()
+  u.users = u.users || []
+  const idx = u.users.findIndex((x: any) => String(x.id) === String(id))
+  if (idx === -1) return null
+  u.users[idx].premium = !!premium
+  writeUsers(u)
+  return u.users[idx]
+}
 
-export default null
+export function setUserStripeCustomer(id: string, customerId: string) {
+  const u = readUsers()
+  u.users = u.users || []
+  const idx = u.users.findIndex((x: any) => String(x.id) === String(id))
+  if (idx === -1) return null
+  u.users[idx].stripeCustomerId = String(customerId)
+  writeUsers(u)
+  return u.users[idx]
+}
+
+export function setUserSubscription(id: string, subscriptionId: string, status: string) {
+  const u = readUsers()
+  u.users = u.users || []
+  const idx = u.users.findIndex((x: any) => String(x.id) === String(id))
+  if (idx === -1) return null
+  u.users[idx].stripeSubscriptionId = String(subscriptionId)
+  u.users[idx].subscriptionStatus = status
+  writeUsers(u)
+  return u.users[idx]
+}
+
+// --- Migration Plans & Templates (file-backed if no prisma)
+
+export function createReview(r: { userId: string; filename: string; filePath: string; note?: string; status?: string }) {
+  if (USING_PRISMA) {
+    // Prisma model not added for Review in schema; fallback to file-backed for now
+    throw new Error('createReview not supported with Prisma in this build')
+  }
+  const db = readDB()
+  db.reviews = db.reviews || []
+  const id = db._nextId++
+  const rec = { id, userId: r.userId, filename: r.filename, filePath: r.filePath, note: r.note || null, status: r.status || 'pending', createdAt: new Date().toISOString() }
+  db.reviews.push(rec)
+  writeDB(db)
+  return rec
+}
+
+export function listReviews() {
+  if (USING_PRISMA) throw new Error('listReviews not supported with Prisma in this build')
+  const db = readDB()
+  return db.reviews || []
+}
+
+export function getReviewById(id: number) {
+  if (USING_PRISMA) throw new Error('getReviewById not supported with Prisma in this build')
+  const db = readDB()
+  return (db.reviews || []).find((r: any) => r.id === Number(id)) || null
+}
+
+export function createMigrationPlan(key: string, data: { userId?: string; answers?: any; generatedSteps?: any; status?: string }) {
+  if (USING_PRISMA) return prisma.migrationPlan.create({ data: { key, userId: data.userId ?? null, answers: data.answers || {}, generatedSteps: data.generatedSteps || {}, status: data.status || 'draft' } })
+  const db = readDB()
+  db.plans = db.plans || {}
+  const id = db._nextId++
+  const plan = { id, key, userId: data.userId || null, answers: data.answers || {}, generatedSteps: data.generatedSteps || {}, status: data.status || 'draft', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+  db.plans[key] = plan
+  writeDB(db)
+  return plan
+}
+
+export function getMigrationPlanByKey(key: string) {
+  if (USING_PRISMA) return prisma.migrationPlan.findUnique({ where: { key } })
+  const db = readDB()
+  return db.plans && db.plans[key] ? db.plans[key] : null
+}
+
+export function listMigrationPlans() {
+  if (USING_PRISMA) return prisma.migrationPlan.findMany()
+  const db = readDB()
+  return Object.values(db.plans || {})
+}
+
+export function createTemplate(t: { name: string; description?: string; fields?: any; filePath?: string; html?: string }) {
+  if (USING_PRISMA) return prisma.template.create({ data: { name: t.name, description: t.description ?? null, fields: t.fields || {} } })
+  const db = readDB()
+  db.templates = db.templates || {}
+  const id = db._nextId++
+  const rec: any = { id, name: t.name, description: t.description || null, fields: t.fields || {}, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+  if (t.filePath) rec.filePath = t.filePath
+  if (t.html) rec.html = t.html
+  db.templates[id] = rec
+  writeDB(db)
+  return rec
+}
+
+export function listTemplates() {
+  if (USING_PRISMA) return prisma.template.findMany()
+  const db = readDB()
+  return Object.values(db.templates || {})
+}
+
+export function getTemplateById(id: number) {
+  if (USING_PRISMA) return prisma.template.findUnique({ where: { id } })
+  const db = readDB()
+  return (db.templates || {})[id] || null
+}
+
+export function createExportRecord(payload: { planId?: number; templateId?: number; filename: string; filePath: string }) {
+  if (USING_PRISMA) return prisma.generatedExport.create({ data: { planId: payload.planId ?? null, templateId: payload.templateId ?? null, filename: payload.filename, filePath: payload.filePath } })
+  const db = readDB()
+  db.exports = db.exports || []
+  const id = db._nextId++
+  const rec = { id, planId: payload.planId ?? null, templateId: payload.templateId ?? null, filename: payload.filename, filePath: payload.filePath, createdAt: new Date().toISOString() }
+  db.exports.push(rec)
+  writeDB(db)
+  return rec
+}
+
+// no default export

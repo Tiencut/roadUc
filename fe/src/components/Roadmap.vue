@@ -18,9 +18,17 @@
       </div>
     </div>
 
+    <div v-if="adjustedForVisa" class="mb-4 p-3 rounded bg-yellow-50 border border-yellow-200 flex items-center justify-between">
+      <div class="text-sm">Lộ trình đã điều chỉnh cho visa: <strong>{{ adjustedForVisa.title || adjustedForVisa.code }}</strong></div>
+      <div>
+        <button @click="clearAdjustment" class="px-3 py-1 border rounded text-sm text-red-600">Bỏ điều chỉnh</button>
+      </div>
+    </div>
+
     <div class="space-y-6">
       <div v-for="phase in filteredPhases" :key="phase.id" class="bg-white p-4 border rounded">
         <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center justify-between w-full">
           <div class="font-semibold">{{ phase.title }}</div>
           <div class="text-xs text-right text-gray-700">
             <div v-if="phase.id === 'before'">
@@ -34,6 +42,7 @@
               <div class="text-xs text-gray-500">{{ livingRange ? (currency === 'AUD' ? formatRange(livingRange) + ' (sinh hoạt)' : formatRangeVnd(livingRange) + ' (sinh hoạt)') : '' }}</div>
             </div>
           </div>
+        </div>
         </div>
 
         <div class="text-xs text-gray-600 mb-3">{{ phase.desc }}</div>
@@ -50,34 +59,24 @@
             <tbody>
               <tr v-for="s in phase.steps" :key="s.id" class="border-t">
                 <td class="py-2 font-medium align-top">
-                  <!-- Hạng mục: always show the step title -->
-                  {{ s.title }}
+                  <div class="flex items-center space-x-2">
+                    <div>{{ s.title }}</div>
+                    <button v-if="s.id === 'study'" @click="openSchoolPicker(s.id)" class="text-sm px-2 py-1 border rounded">Chọn trường (tùy chọn)</button>
+                  </div>
+
+                  <div v-if="selectedSchools[s.id]" class="mt-1 text-sm text-gray-600">
+                    <div>Đã chọn: <strong>{{ selectedSchools[s.id].name }}</strong></div>
+                    <div v-if="selectedSchools[s.id].tuitionFormatted">Học phí: {{ selectedSchools[s.id].tuitionFormatted }}</div>
+                    <div v-if="selectedSchools[s.id].link"><a :href="selectedSchools[s.id].link" target="_blank" class="text-blue-600">Nguồn</a></div>
+                  </div>
+
+                  <div v-if="s.id === 'study'" class="mt-1 text-xs text-gray-500">Lưu ý: Chọn trường là tùy chọn — Visa 462 không bắt buộc phải học.</div>
                 </td>
                 <td class="py-2 text-gray-600 align-top">
                   <!-- Mô tả: render structured details when present, otherwise for during/after split into lines -->
-                  <div v-if="Array.isArray(s.details) && s.details.length">
-                    <table class="min-w-full text-sm border-collapse">
-                      <thead>
-                        <tr class="text-left text-xs text-gray-600">
-                          <th class="py-1">Mục</th>
-                          <th class="py-1">Chi tiết</th>
-                          <th class="py-1 text-right">Chi phí (AUD)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr v-for="(d, idx) in s.details" :key="idx" class="border-t">
-                          <td class="py-1">{{ d.label || '-' }}</td>
-                          <td class="py-1">{{ d.desc || '-' }}</td>
-                          <td class="py-1 text-right">
-                            <span v-if="parseCostStr(d.cost)">
-                              {{ currency === 'AUD' ? formatRange(parseCostStr(d.cost)) : formatRangeVnd(parseCostStr(d.cost)) }}
-                            </span>
-                            <span v-else class="text-gray-500">{{ d.cost || '-' }}</span>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                  <template v-if="Array.isArray(s.details) && s.details.length">
+                    <StepDetails :details="s.details" :currency="currency" />
+                  </template>
                   <div v-else-if="phase.id === 'during' || phase.id === 'after'">
                     <ul class="custom-list ml-4">
                       <li v-for="(line, i) in splitIntoLines(s.desc)" :key="i">{{ line }}</li>
@@ -97,14 +96,29 @@
         </div>
       </div>
     </div>
+
+    <!-- School picker modal -->
+    <div v-if="showSchoolPicker" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div class="bg-white rounded p-4 w-full max-w-3xl">
+        <SchoolPicker :initialBudget="(latestAssessment && latestAssessment.funds) ? latestAssessment.funds : null" :initialIelts="(latestAssessment && latestAssessment.englishScore) ? latestAssessment.englishScore : null" @select="onSchoolSelected" @close="closeSchoolPicker" />
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed } from 'vue'
+import { defineComponent, ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import StepDetails from './StepDetails.vue'
+import SchoolPicker from './SchoolPicker.vue'
+import phases from '../data/roadmap.json'
+import { useMoney } from '../composables/useMoney'
+import { usePlannedVisa } from '../composables/usePlannedVisa'
+import { visaOverrides } from '../data/visa-overrides'
 
 export default defineComponent({
   name: 'Roadmap',
+  components: { StepDetails, SchoolPicker },
   props: {
     currentStep: { type: Number, required: false, default: 1 }
   },
@@ -114,12 +128,9 @@ export default defineComponent({
     const duringTotalAud = ref<number | null>(null)
     const postOneTimeAud = ref<number | null>(null)
     const livingTotalAud = ref<number | null>(null)
-    const audToVnd = ref<number>(16000)
 
-    function formatDigits(n: number | null | undefined) {
-      if (n === null || n === undefined || Number.isNaN(n)) return '-'
-      return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-    }
+    // shared money helpers
+    const { audToVnd, parseCostStr, formatRange, formatRangeVnd, formatDigits } = useMoney()
 
     function formatAud(n: number | null | undefined) {
       if (n === null || n === undefined) return '-'
@@ -135,36 +146,6 @@ export default defineComponent({
       if (!desc) return []
       // Split on commas, semicolons or newlines and trim
       return String(desc).split(/,|;|\n/).map(s => s.trim()).filter(Boolean)
-    }
-
-    // New structured parsing: cost strings like "800 - 1,500" or "50" -> { min, max }
-    function parseCostStr(costStr: string | null | undefined) {
-      if (!costStr) return null
-      let s = String(costStr).replace(/\u00A0/g, ' ').trim()
-      s = s.replace(/AUD|VND|AUD\:|VND\:/gi, '')
-      // remove any non-digit, non-separators except - , .
-      s = s.replace(/[^0-9\-,.\s]/g, '')
-      // remove commas used as thousand separators
-      s = s.replace(/,/g, '')
-      // remove dots used as thousand separators (e.g. 1.500)
-      s = s.replace(/(\d)\.(?=\d{3}(?:\D|$))/g, '$1')
-      s = s.replace(/\s+/g, ' ')
-
-      // handle ranges: look for first hyphen
-      const rangeMatch = s.match(/(\d+)\s*-\s*(\d+)/)
-      if (rangeMatch) {
-        const min = parseInt(rangeMatch[1], 10)
-        const max = parseInt(rangeMatch[2], 10)
-        if (!Number.isNaN(min) && !Number.isNaN(max)) return { min, max }
-      }
-
-      // otherwise try to get a single number
-      const numMatch = s.match(/(\d+)/)
-      if (numMatch) {
-        const v = parseInt(numMatch[1], 10)
-        if (!Number.isNaN(v)) return { min: v, max: v }
-      }
-      return null
     }
 
     // Compute the numeric range for a step: sum min/max across details or use costAud
@@ -242,17 +223,159 @@ export default defineComponent({
       return saw ? { min: totalMin, max: totalMax } : null
     }
 
-    function formatRange(r: { min: number; max: number } | null) {
-      if (!r) return '-'
-      if (r.min === r.max) return `${formatDigits(r.min)} AUD`
-      return `${formatDigits(r.min)} - ${formatDigits(r.max)} AUD`
+    // Selected schools state (stepId -> school)
+    const selectedSchools = ref<Record<string, any>>({})
+
+    const latestAssessment = ref<any>(null)
+
+    // modal & selection state
+    const showSchoolPicker = ref(false)
+    const selectedStep = ref<string | null>(null)
+
+    // planned visa composable and overrides
+    const { plannedVisa, setPlannedVisa, clearPlannedVisa } = usePlannedVisa()
+    const adjustedForVisa = ref<any | null>(null)
+    // keep a base copy of phases for re-applying overrides cleanly
+    const basePhases = JSON.parse(JSON.stringify(phases))
+
+    function openSchoolPicker(stepId: string) {
+      selectedStep.value = stepId
+      showSchoolPicker.value = true
     }
 
-    function formatRangeVnd(r: { min: number; max: number } | null) {
-      if (!r) return ''
-      if (r.min === r.max) return `${formatDigits(Math.round(r.min * audToVnd.value))} VND`
-      return `${formatDigits(Math.round(r.min * audToVnd.value))} - ${formatDigits(Math.round(r.max * audToVnd.value))} VND`
+    function closeSchoolPicker() {
+      showSchoolPicker.value = false
+      selectedStep.value = null
     }
+
+    function applyOverrides(planned: any) {
+      // reset to base
+      phasesState.value = JSON.parse(JSON.stringify(basePhases))
+      adjustedForVisa.value = null
+      if (!planned || !planned.code) {
+        // recompute ranges
+        const beforePhase = phasesState.value.find((p: any) => p.id === 'before')
+        const duringPhase = phasesState.value.find((p: any) => p.id === 'during')
+        const afterPhase = phasesState.value.find((p: any) => p.id === 'after')
+        preRange.value = computePhaseRange(beforePhase)
+        duringRange.value = computePhaseRange(duringPhase)
+        postRange.value = computePhaseRange(afterPhase)
+        return
+      }
+
+      const ov = (visaOverrides as any)[planned.code]
+      if (!ov || !ov.phases) {
+        // unknown visa = no overrides
+        adjustedForVisa.value = planned
+        const beforePhase = phasesState.value.find((p: any) => p.id === 'before')
+        const duringPhase = phasesState.value.find((p: any) => p.id === 'during')
+        const afterPhase = phasesState.value.find((p: any) => p.id === 'after')
+        preRange.value = computePhaseRange(beforePhase)
+        duringRange.value = computePhaseRange(duringPhase)
+        postRange.value = computePhaseRange(afterPhase)
+        return
+      }
+
+      // apply overrides per-phase
+      for (const [phaseId, change] of Object.entries(ov.phases)) {
+        const phase = phasesState.value.find((p: any) => p.id === phaseId)
+        if (!phase) continue
+        // modifySteps: { stepId: { costAud, detailsPatch, remove } }
+        if (change.modifySteps) {
+          for (const [stepId, patch] of Object.entries(change.modifySteps)) {
+            const step = phase.steps.find((s: any) => s.id === stepId)
+            if (!step) continue
+            if ((patch as any).remove) {
+              phase.steps = phase.steps.filter((s: any) => s.id !== stepId)
+              continue
+            }
+            if ((patch as any).costAud !== undefined) step.costAud = (patch as any).costAud
+            if ((patch as any).title !== undefined) step.title = (patch as any).title
+            if ((patch as any).detailsPatch) {
+              // append or merge details by label
+              for (const dp of (patch as any).detailsPatch) {
+                const idx = step.details ? step.details.findIndex((d: any) => d.label === dp.label) : -1
+                if (!step.details) step.details = []
+                if (idx >= 0) step.details.splice(idx, 1, dp)
+                else step.details.push(dp)
+              }
+            }
+          }
+        }
+        // TODO: support addSteps/removeSteps if needed in future
+      }
+
+      adjustedForVisa.value = planned
+
+      // recompute ranges
+      const beforePhase = phasesState.value.find((p: any) => p.id === 'before')
+      const duringPhase = phasesState.value.find((p: any) => p.id === 'during')
+      const afterPhase = phasesState.value.find((p: any) => p.id === 'after')
+      preRange.value = computePhaseRange(beforePhase)
+      duringRange.value = computePhaseRange(duringPhase)
+      postRange.value = computePhaseRange(afterPhase)
+    }
+
+    // watch plannedVisa changes to apply overrides
+    ;(function initPlannedWatcher() {
+      // load once (usePlannedVisa already loads local)
+      applyOverrides(plannedVisa.value)
+      // attach a simple polling watcher (reactive watch in composition style)
+      // since we are inside setup, use a Mutation-style watch via setInterval or a micro-watch
+    })()
+
+    // listen for changes from composable (StorageEvent already handled) - simple interval poll to detect changes
+    let pvPrev: string | null = JSON.stringify(plannedVisa.value)
+    let pvInterval: number | null = window.setInterval(() => {
+      const cur = JSON.stringify(plannedVisa.value)
+      if (cur !== pvPrev) {
+        pvPrev = cur
+        applyOverrides(plannedVisa.value)
+      }
+    }, 300) as unknown as number
+
+    // cleanup on unmount
+    onBeforeUnmount(() => {
+      try { if (pvInterval) clearInterval(pvInterval) } catch (e) {}
+    })
+
+
+    function saveSelectedSchoolsToLocal() {
+      try { localStorage.setItem('roadmap.selectedSchools', JSON.stringify(selectedSchools.value)) } catch (e) {}
+    }
+
+    function onSchoolSelected(payload: any) {
+      // attach to the step details
+      const stepId = selectedStep.value
+      if (!stepId) return
+      const phase = phasesState.value.find((p: any) => p.id === 'before')
+      // find study step
+      const st = phasesState.value.flatMap((p: any) => p.steps).find((x: any) => x.id === stepId)
+      if (!st) return
+
+      // add or replace a detail with label 'selectedSchool'
+      const existingIdx = st.details.findIndex((d: any) => d.label === 'selectedSchool')
+      const schoolDesc = payload.name + (payload.notes ? ' — ' + payload.notes : '')
+      const detailObj: any = { label: 'selectedSchool', desc: schoolDesc, cost: (payload.tuition ? String(payload.tuition) : '-') , link: payload.link || '' }
+      if (existingIdx >= 0) st.details.splice(existingIdx, 1, detailObj)
+      else st.details.push(detailObj)
+
+      // persist selection separately
+      selectedSchools.value[stepId] = { name: payload.name, tuition: payload.tuition, tuitionFormatted: payload.tuitionFormatted, link: payload.link }
+      saveSelectedSchoolsToLocal()
+
+      // recompute phase totals
+      const beforePhase = phasesState.value.find((p: any) => p.id === 'before')
+      const duringPhase = phasesState.value.find((p: any) => p.id === 'during')
+      const afterPhase = phasesState.value.find((p: any) => p.id === 'after')
+      preRange.value = computePhaseRange(beforePhase)
+      duringRange.value = computePhaseRange(duringPhase)
+      postRange.value = computePhaseRange(afterPhase)
+
+      closeSchoolPicker()
+    }
+
+    // sử dụng `formatRange` và `formatRangeVnd` từ `useMoney()` để tránh trùng tên hàm
 
     const preRange = ref<{ min: number; max: number } | null>(null)
     const duringRange = ref<{ min: number; max: number } | null>(null)
@@ -266,10 +389,11 @@ export default defineComponent({
 
     // filter phases: 'all' | 'before' | 'during' | 'after'
     // Default to 'before' so the roadmap initially shows 'Trước khi đi' only
+    const phasesState = ref<any[]>(JSON.parse(JSON.stringify(phases)))
     const filterPhase = ref<'all' | 'before' | 'during' | 'after'>('before')
     const filteredPhases = computed(() => {
-      if (filterPhase.value === 'all') return phases
-      return phases.filter((p: any) => p.id === filterPhase.value)
+      if (filterPhase.value === 'all') return phasesState.value
+      return phasesState.value.filter((p: any) => p.id === filterPhase.value)
     })
 
     onMounted(() => {
@@ -293,83 +417,53 @@ export default defineComponent({
         livingTotalAud.value = (livingPer && months) ? Math.round(livingPer * months) : null
 
         // compute ranges from structured details
-        const beforePhase = phases.find((p: any) => p.id === 'before')
-        const duringPhase = phases.find((p: any) => p.id === 'during')
-        const afterPhase = phases.find((p: any) => p.id === 'after')
+        const beforePhase = phasesState.value.find((p: any) => p.id === 'before')
+        const duringPhase = phasesState.value.find((p: any) => p.id === 'during')
+        const afterPhase = phasesState.value.find((p: any) => p.id === 'after')
         preRange.value = computePhaseRange(beforePhase)
         duringRange.value = computePhaseRange(duringPhase)
         postRange.value = computePhaseRange(afterPhase)
         livingRange.value = livingTotalAud.value ? { min: livingTotalAud.value, max: livingTotalAud.value } : null
+
+        // load selected schools from localStorage
+        try {
+          const selRaw = localStorage.getItem('roadmap.selectedSchools')
+          if (selRaw) selectedSchools.value = JSON.parse(selRaw)
+        } catch (e) {}
+
+        // load latest assessment to prefill school picker
+        try {
+          const assRaw = localStorage.getItem('latest_assessment')
+          if (assRaw) {
+            const a = JSON.parse(assRaw)
+            latestAssessment.value = a
+          }
+        } catch (e) {}
+
+        // apply overrides for any already selected planned visa
+        applyOverrides(plannedVisa.value)
       } catch (e) {
         // ignore parse errors
       }
     })
-    // phases with detailed steps and important notes (user-provided content)
-    const phases = [
-      {
-        id: 'before',
-        title: 'Trước khi đi Úc',
-        desc: 'Các bước chính trước khi xuất cảnh',
-        note: 'Độ tuổi 18-30, phí visa 650 AUD. Chuẩn bị 10-12 tháng.',
-        steps: [
-          { id: 'ballot', index: 1, title: 'Nộp Ballot & hồ sơ', desc: 'Nộp Ballot (25 AUD), chờ lời mời rồi nộp hồ sơ đầy đủ (hộ chiếu, chứng minh tài chính ≥5,000 AUD, tiếng Anh B1+, sức khỏe, lý lịch tư pháp).', costAud: 25, details: [
-            { label: '1', desc: 'Nộp Ballot đăng ký tham gia xổ số visa 462 qua hệ thống ImmiAccount. Phí không hoàn lại, thanh toán bằng thẻ Visa/MasterCard (có thể thêm phụ phí 0.25-0.35 AUD).', cost: '25' },
-            { label: '2', desc: 'Chờ kết quả bốc thăm (thông báo qua email nếu trúng). Thời gian mở Ballot 2025-2026 thường từ tháng 6-7.', cost: '0' },
-            { label: '3', desc: 'Nộp hồ sơ đầy đủ: Hộ chiếu, chứng minh tài chính ≥5,000 AUD, chứng chỉ tiếng Anh (PTE 24+ tương đương B1+), giấy khám sức khỏe, lý lịch tư pháp.', cost: '650-670' },
-            { label: '4', desc: 'Khám sức khỏe và kiểm tra lý lịch (nếu yêu cầu bổ sung).', cost: '300-500' }
-          ] },
-          { id: 'travel', index: 2, title: 'Chuẩn bị đi lại & hồ sơ', desc: 'Mua vé máy bay khứ hồi, bảo hiểm du lịch, chuẩn bị CV tiếng Anh.', costAud: undefined, details: [
-            { label: 'Vé máy bay khứ hồi', desc: 'Tùy mùa, hãng, điểm khởi hành', cost: '800-1500' },
-            { label: 'Bảo hiểm du lịch', desc: 'Bảo hiểm cho thời gian đầu (6-12 tháng)', cost: '50-200' },
-            { label: 'Chuẩn bị CV tiếng Anh', desc: 'Dịch/viết lại CV, chỉnh ngắn gọn theo tiêu chuẩn Úc', cost: '0-50' }
-          ] },
-          { id: 'study', index: 3, title: 'Học & tích lũy kinh nghiệm', desc: 'Học tiếng Anh/PTE nếu cần, tích lũy kinh nghiệm nghề (nông nghiệp, dịch vụ).', costAud: undefined, details: [] }
-        ]
-      },
-      {
-        id: 'during',
-        title: 'Khi đang ở Úc',
-        desc: 'Các bước chính khi đã có mặt ở Úc',
-        note: 'Ở hostel đầu tiên, kết nối cộng đồng backpacker. Thu nhập hỗ trợ chi phí.',
-        steps: [
-          { id: 'setup', index: 4, title: 'Thiết lập đời sống', desc: 'Mua SIM, mở tài khoản ngân hàng, xin TFN (mã thuế), ABN nếu tự doanh.', costAud: undefined, details: [
-            { label: 'SIM & dữ liệu', desc: 'Mua SIM, nạp data ban đầu', cost: '10-30' },
-            { label: 'Mở tài khoản ngân hàng', desc: 'Phần lớn miễn phí, một số phí nhỏ', cost: '0-10' },
-            { label: 'TFN', desc: 'Xin mã thuế (TFN) online', cost: '0' }
-          ] },
-          { id: 'work', index: 5, title: 'Tìm việc & làm việc', desc: 'Tìm việc qua Seek/Indeed/Gumtree (farm, khách sạn, ≤6 tháng/nhà tuyển dụng).', costAud: undefined, details: [
-            { label: 'Tìm việc (ứng tuyển)', desc: 'Chuẩn bị, in ấn CV, di chuyển phỏng vấn', cost: '0-50' },
-            { label: 'Chi phí trung chuyển', desc: 'Phương tiện đi lại ban đầu', cost: '0-50' }
-          ] },
-          { id: 'training', index: 6, title: 'Du lịch & học ngắn hạn', desc: 'Du lịch, học ≤4 tháng (RSA/FoodSafety), làm việc regional để gia hạn visa năm 2/3.', costAud: undefined, details: [
-            { label: 'Khóa RSA/FoodSafety', desc: 'Giấy chứng nhận an toàn thực phẩm / phục vụ rượu', cost: '50-200' },
-            { label: 'Du lịch nội địa', desc: 'Chi phí đi lại giữa các vùng để làm việc', cost: '100-400' }
-          ] }
-        ]
-      },
-      {
-        id: 'after',
-        title: 'Sau khi về',
-        desc: 'Các bước thực hiện sau khi kết thúc hành trình',
-        note: '',
-        steps: [
-          { id: 'super', index: 7, title: 'Rút Superannuation', desc: 'Rút Superannuation (quỹ hưu trí).', costAud: undefined, details: [
-            { label: 'Phí xử lý', desc: 'Phí ngân hàng hoặc dịch vụ làm thủ tục', cost: '0-50' },
-            { label: 'Thuế/khấu trừ', desc: 'Có thể có thay đổi tùy trường hợp', cost: '0-200' }
-          ] },
-          { id: 'cv', index: 8, title: 'Cập nhật CV & tận dụng kinh nghiệm', desc: 'Cập nhật CV với kinh nghiệm Úc, dùng để xin việc Việt Nam hoặc visa khác (482/491).', costAud: undefined, details: [
-            { label: 'Dịch vụ CV/LinkedIn', desc: 'Tùy chọn có thể trả phí để chỉnh CV chuyên nghiệp', cost: '0-50' },
-            { label: 'Chi phí hồ sơ', desc: 'In ấn, scan, dịch thuật khi cần', cost: '0-50' }
-          ] },
-          { id: 'evaluate', index: 9, title: 'Đánh giá hướng đi', desc: 'Đánh giá tài chính, kỹ năng để quyết định quay lại hoặc định cư.', costAud: undefined, details: [
-            { label: 'Tư vấn', desc: 'Tư vấn nghề nghiệp hoặc visa', cost: '0-100' },
-            { label: 'Chi phí khác', desc: 'Chi phí phát sinh', cost: '0-100' }
-          ] }
-        ]
-      }
-    ]
 
-    return { phases, currentStep: props.currentStep, preTotalAud, duringTotalAud, postOneTimeAud, livingTotalAud, preRange, duringRange, postRange, livingRange, formatAud, formatVndFromAud, formatDigits, splitIntoLines, extractCostsFromHtml, parseCostStr, computeStepRange, computePhaseRange, formatRange, formatRangeVnd, currency, toggleCurrency, filterPhase, filteredPhases }
+    // cleanup for pvInterval
+    ;(function teardownOnUnmount() {
+      try {
+        // attempt to clear interval when component unmounts
+        const oldClear = (globalThis as any).__roadmap_pv_interval_clear
+        if (!oldClear) {
+          ;(globalThis as any).__roadmap_pv_interval_clear = true
+          // clear stored interval list if exists
+        }
+      } catch (e) {}
+    })()
+    // `phases` đã được tách ra thành file JSON: fe/src/data/roadmap.json
+    // import phases from that file above (so we keep component logic clean)
+
+    function clearAdjustment() { clearPlannedVisa(); applyOverrides(null) }
+
+    return { phases: phasesState, currentStep: props.currentStep, preTotalAud, duringTotalAud, postOneTimeAud, livingTotalAud, preRange, duringRange, postRange, livingRange, formatAud, formatVndFromAud, formatDigits, splitIntoLines, extractCostsFromHtml, parseCostStr, computeStepRange, computePhaseRange, formatRange, formatRangeVnd, currency, toggleCurrency, filterPhase, filteredPhases, showSchoolPicker, openSchoolPicker, closeSchoolPicker, onSchoolSelected, selectedSchools, latestAssessment, selectedStep, adjustedForVisa, clearAdjustment }
   }
 })
 </script>

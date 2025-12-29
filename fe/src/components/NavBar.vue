@@ -19,20 +19,8 @@
             <li><router-link :to="'/'" :class="linkClass('/')">Trang chủ</router-link></li>
             <li><router-link :to="'/assessment'" :class="linkClass('/assessment')">Khảo sát</router-link></li>
 
-            <!-- Combined Schools & Visas dropdown -->
-            <li class="relative" data-primary-dropdown @mouseenter="onPrimaryEnter()" @mouseleave="onPrimaryLeave()">
-              <button @click.prevent="togglePrimary()" class="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl transition-all duration-200 hover:bg-gray-100" :class="linkClass('/schools')">
-                <span>Chọn trường</span>
-                <svg class="w-4 h-4 transition-transform duration-200" :class="primaryOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              <div v-show="primaryOpen" class="absolute mt-2 w-48 right-0 bg-white/95 backdrop-blur-md border border-gray-200 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in duration-200" @click.stop>
-                <router-link to="/schools" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50">Chọn trường</router-link>
-                <router-link to="/visas" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50">Bảng visa</router-link>
-              </div>
-            </li>
+            <!-- Visas link -->
+            <li><router-link :to="'/visas'" :class="linkClass('/visas')">Bảng visa</router-link></li>
           </ul>
 
           <!-- Grouped dropdowns (each group becomes its own hoverable menu) -->
@@ -187,12 +175,11 @@ export default defineComponent({
     const open = ref(false)
     const openGroups = ref<boolean[]>([])
     const route = useRoute()
-    const { user, logout } = useAuth()
+    const { user, logout, refresh } = useAuth()
 
     const items = [
       { to: '/', label: 'Trang chủ' },
       { to: '/assessment', label: 'Khảo sát' },
-      { to: '/schools', label: 'Chọn trường' },
       { to: '/visas', label: 'Bảng visa' }
     ]
 
@@ -268,6 +255,8 @@ export default defineComponent({
 
     onMounted(() => {
       document.addEventListener('click', closeMenus)
+      // refresh auth state on app load (updates premium flag)
+      try { refresh && refresh().catch(() => {}) } catch (e) {}
     })
 
     onUnmounted(() => {

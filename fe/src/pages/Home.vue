@@ -85,7 +85,6 @@ export default defineComponent({
     const routes = [
       { id: 'assessment', title: 'Khảo sát khả năng', desc: 'Đánh giá nhanh điều kiện sang Úc' },
       { id: 'study', title: 'Du học', desc: 'Lộ trình Du học' },
-      { id: 'schools', title: 'Chọn trường', desc: 'Gợi ý trường và ước tính chi phí' },
       { id: 'finance', title: 'Tài chính', desc: 'Công cụ tính chi phí & chuẩn bị tài chính' },
       { id: 'immi', title: 'Hướng dẫn Immi', desc: 'Tạo ImmiAccount và nộp hồ sơ' },
       { id: 'gte', title: 'GTE / Thư giải trình', desc: 'Hỗ trợ tạo bản nháp GTE' },
@@ -96,7 +95,6 @@ export default defineComponent({
     const router = useRouter()
     function routeTo(id: string) {
       if (id === 'assessment') return '/assessment'
-      if (id === 'schools') return '/schools'
       if (id === 'checklist') return '/reminders'
       return `/route/${id}`
     }

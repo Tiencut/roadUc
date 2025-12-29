@@ -6,7 +6,8 @@
         <p><strong>Email:</strong> {{ user.email }}</p>
         <p v-if="user.name"><strong>Tên:</strong> {{ user.name }}</p>
         <div class="mt-4">
-          <button @click="onLogout" class="px-3 py-1 bg-red-600 text-white rounded">Đăng xuất</button>
+            <button @click="onLogout" class="px-3 py-1 bg-red-600 text-white rounded">Đăng xuất</button>
+            <router-link v-if="!user?.premium" to="/billing" class="ml-2 px-3 py-1 bg-green-600 text-white rounded">Nâng cấp Premium</router-link>
         </div>
       </div>
       <div v-else>
